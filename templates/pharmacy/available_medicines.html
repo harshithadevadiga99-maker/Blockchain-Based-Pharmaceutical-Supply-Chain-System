@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Available Medicines{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-capsules me-2 text-success"></i>Available Medicines</h2>
+    <a href="{{ url_for('create_request') }}" class="btn gradient-btn">
+        <i class="fas fa-plus-circle me-2"></i>New Request
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    These medicines are available for order. Quantities are hidden — supplier will confirm stock and price.
+</div>
+
+<div class="row">
+    {% for p in medicines %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            {% if p.image_url %}
+                <img src="{{ p.image_url }}" class="card-img-top" style="height:180px;object-fit:cover;">
+            {% else %}
+                <div class="card-img-top d-flex align-items-center justify-content-center" style="height:180px;background:linear-gradient(135deg,#e9ecef,#dee2e6);">
+                    <i class="fas fa-pills fa-4x text-muted"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <h6>{{ p.name }}</h6>
+                <small class="text-muted d-block">{{ p.composition }}</small>
+                <div class="mt-2">
+                    <span class="badge bg-info">{{ p.category }}</span>
+                    {% if p.status == 'available' %}
+                        <span class="badge bg-success">Available</span>
+                    {% elif p.status == 'dispatched' %}
+                        <span class="badge bg-primary"><i class="fas fa-shipping-fast me-1"></i>In Supply</span>
+                    {% elif p.status == 'out_of_stock' %}
+                        <span class="badge bg-warning text-dark">Limited Stock</span>
+                    {% endif %}
+                    {% if p.prescription_required %}<span class="badge bg-danger">Rx</span>{% endif %}
+                </div>
+                {% if p.uses %}
+                    <small class="text-muted d-block mt-2">
+                        <strong>Uses:</strong> {{ p.uses[:80] }}{% if p.uses|length > 80 %}...{% endif %}
+                    </small>
+                {% endif %}
+                <small class="text-muted d-block">
+                    <i class="fas fa-industry me-1"></i>{{ p.manufacturer.company_name or p.manufacturer.username if p.manufacturer else 'Unknown' }}
+                </small>
+                <small class="text-muted d-block">
+                    <i class="fas fa-calendar me-1"></i>Exp: {{ p.expiry_date.strftime('%Y-%m-%d') if p.expiry_date else 'N/A' }}
+                </small>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('create_request') }}" class="btn btn-sm btn-success w-100">
+                    <i class="fas fa-plus-circle me-1"></i>Request This Medicine
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-warning text-center py-5">
+            <i class="fas fa-info-circle fa-3x mb-3 d-block"></i>
+            <h5>No medicines available yet</h5>
+            <p>Medicines appear here after manufacturer adds them and admin approves the certificate.</p>
+            <hr>
+            <small class="text-muted">
+                💡 <strong>Demo:</strong> Login as <code>manufacturer1 / mfg123</code> → Add Medicine → 
+                then as <code>admin / admin123</code> → Approve certificate.
+            </small>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

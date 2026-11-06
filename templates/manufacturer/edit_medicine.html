@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Edit Medicine{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><h5><i class="fas fa-edit me-2 text-warning"></i>Edit Medicine</h5></div>
+            <div class="card-body">
+                {% if product.image_url %}
+                <div class="text-center mb-3">
+                    <img src="{{ product.image_url }}" style="max-width:200px;max-height:200px;border-radius:10px;">
+                </div>
+                {% endif %}
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Medicine Name</label>
+                            <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Composition</label>
+                            <input type="text" name="composition" class="form-control" value="{{ product.composition or '' }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-control">
+                                {% for cat in ['Tablet','Capsule','Syrup','Injection','Ointment','Drops','Other'] %}
+                                    <option value="{{ cat }}" {% if product.category == cat %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Manufacturer Company</label>
+                            <input type="text" name="manufacturer_name" class="form-control" value="{{ product.manufacturer_name or '' }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Batch</label>
+                            <input type="text" name="batch_number" class="form-control" value="{{ product.batch_number or '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Mfg Date</label>
+                            <input type="date" name="mfg_date" class="form-control" value="{{ product.mfg_date.strftime('%Y-%m-%d') if product.mfg_date else '' }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" name="expiry_date" class="form-control" value="{{ product.expiry_date.strftime('%Y-%m-%d') if product.expiry_date else '' }}" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" step="0.01" name="quantity" class="form-control" value="{{ product.quantity }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Unit</label>
+                            <select name="unit" class="form-control">
+                                {% for u in ['strip','box','bottle','vial','tube','pieces'] %}
+                                    <option value="{{ u }}" {% if product.unit == u %}selected{% endif %}>{{ u|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Price per Unit ($)</label>
+                            <input type="number" step="0.01" name="price_per_unit" class="form-control" value="{{ product.price_per_unit }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3">{{ product.description or '' }}</textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="prescription_required" class="form-check-input" id="presc" {% if product.prescription_required %}checked{% endif %}>
+                        <label class="form-check-label" for="presc">Prescription Required</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Update Image</label>
+                        <input type="file" name="product_image" class="form-control" accept="image/*">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-2"></i>Update
+                        </button>
+                        <a href="{{ url_for('manufacturer_dashboard') }}" class="btn btn-secondary mt-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

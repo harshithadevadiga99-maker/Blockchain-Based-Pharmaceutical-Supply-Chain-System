@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Admin Dashboard</h2>
+
+<!-- Role Stats -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary p-3">
+            <h6><i class="fas fa-industry me-2"></i>Manufacturers</h6>
+            <h2>{{ stats.total_manufacturers }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning p-3">
+            <h6><i class="fas fa-truck me-2"></i>Suppliers</h6>
+            <h2>{{ stats.total_suppliers }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success p-3">
+            <h6><i class="fas fa-clinic-medical me-2"></i>Pharmacies</h6>
+            <h2>{{ stats.total_pharmacies }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info p-3">
+            <h6><i class="fas fa-users me-2"></i>Users</h6>
+            <h2>{{ stats.total_users }}</h2>
+        </div>
+    </div>
+</div>
+
+<!-- System Stats -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="card text-white bg-secondary p-3">
+            <h6><i class="fas fa-pills me-2"></i>Total Medicines</h6>
+            <h2>{{ stats.total_products }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-primary p-3">
+            <h6><i class="fas fa-clipboard-list me-2"></i>Total Requests</h6>
+            <h2>{{ stats.total_requests }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info p-3">
+            <h6><i class="fas fa-receipt me-2"></i>Total Receipts</h6>
+            <h2>{{ stats.total_receipts }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning p-3">
+            <h6><i class="fas fa-file-medical me-2"></i>Total Certificates</h6>
+            <h2>{{ stats.total_certificates }}</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Certificate Stats -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-warning p-3">
+            <h6><i class="fas fa-clock me-2"></i>Pending Certificates</h6>
+            <h2>{{ stats.pending_certificates }}</h2>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success p-3">
+            <h6><i class="fas fa-check-circle me-2"></i>Approved</h6>
+            <h2>{{ stats.approved_certificates }}</h2>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-danger p-3">
+            <h6><i class="fas fa-times-circle me-2"></i>Rejected</h6>
+            <h2>{{ stats.rejected_certificates }}</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-2">
+        <a href="{{ url_for('manage_certificates') }}" class="btn btn-outline-primary w-100 py-3">
+            <i class="fas fa-file-medical fa-2x d-block mb-1"></i>
+            Review Certificates
+            {% if stats.pending_certificates > 0 %}
+                <span class="badge bg-danger ms-1">{{ stats.pending_certificates }}</span>
+            {% endif %}
+        </a>
+    </div>
+    <div class="col-md-3 mb-2">
+        <a href="{{ url_for('manage_users') }}" class="btn btn-outline-info w-100 py-3">
+            <i class="fas fa-users fa-2x d-block mb-1"></i>
+            Manage Users
+        </a>
+    </div>
+    <!-- <div class="col-md-3 mb-2">
+        <a href="{{ url_for('admin_receipts') }}" class="btn btn-outline-success w-100 py-3">
+            <i class="fas fa-receipt fa-2x d-block mb-1"></i>
+            All Receipts
+        </a>
+    </div> -->
+    <div class="col-md-3 mb-2">
+        <a href="{{ url_for('blockchain_explorer') }}" class="btn btn-outline-dark w-100 py-3">
+            <i class="fas fa-cubes fa-2x d-block mb-1"></i>
+            Blockchain
+        </a>
+    </div>
+</div>
+
+<!-- Lists -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="fas fa-clock me-2"></i>Pending Certificates</h6>
+            </div>
+            <div class="card-body">
+                {% for c in pending_cert_list %}
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                    <div>
+                        <strong>{{ c.product_name }}</strong>
+                        <br><small class="text-muted">
+                            {{ c.manufacturer.company_name or c.manufacturer.username }} • Batch: {{ c.batch_number }}
+                        </small>
+                    </div>
+                    <a href="{{ url_for('admin_view_certificate', cert_id=c.id) }}" class="btn btn-sm btn-primary">
+                        Review
+                    </a>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No pending certificates.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Recent Requests</h6>
+            </div>
+            <div class="card-body">
+                {% for r in recent_requests %}
+                <div class="border-bottom pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ r.medicine_name }}</strong>
+                        <span class="badge bg-primary">{{ r.status|replace('_',' ')|title }}</span>
+                    </div>
+                    <small class="text-muted">
+                        {{ r.pharmacy.company_name or r.pharmacy.username }} → 
+                        {{ r.supplier.company_name or r.supplier.username if r.supplier else 'Unassigned' }}
+                        • Qty: {{ r.quantity }}
+                    </small>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No requests yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

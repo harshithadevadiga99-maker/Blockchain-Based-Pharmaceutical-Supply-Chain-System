@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-user me-2 text-danger"></i>Welcome, {{ current_user.username }}</h2>
+    <a href="{{ url_for('chatbot') }}" class="btn gradient-btn">
+        <i class="fas fa-robot me-2"></i>AI Assistant
+    </a>
+</div>
+<!-- 
+<div class="alert alert-info">
+    <i class="fas fa-wallet me-2"></i>Wallet Balance: <strong>${{ "%.2f"|format(current_user.wallet_balance or 0) }}</strong>
+</div> -->
+
+<!-- SEARCH SECTION -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-search me-2"></i>Search Medicine & Track Supply Chain</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('user_search') }}" class="row g-2">
+            <div class="col-md-5">
+                <label class="form-label">Medicine Name</label>
+                <input type="text" name="q" class="form-control" placeholder="e.g., Paracetamol" value="{{ request.args.get('q', '') }}" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Pharmacy (optional)</label>
+                <select name="pharmacy" class="form-select">
+                    <option value="">All Pharmacies</option>
+                    {% for p in pharmacies %}
+                        <option value="{{ p.id }}" {% if request.args.get('pharmacy') == p.id|string %}selected{% endif %}>
+                            {{ p.company_name or p.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn gradient-btn w-100">
+                    <i class="fas fa-search me-1"></i>Track
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- 
+<div class="row">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>My Orders</h6></div>
+            <div class="card-body">
+                {% for o in orders %}
+                <div class="card mb-2" style="border-left: 5px solid
+                    {% if o.status == 'delivered' %}#198754
+                    {% elif o.status == 'ready' %}#0dcaf0
+                    {% elif o.status == 'paid' %}#0d6efd
+                    {% else %}#ffc107{% endif %};">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6>{{ o.medicine_name }}</h6>
+                                <small class="text-muted">
+                                    Qty: {{ o.quantity }} {{ o.unit }} | ${{ "%.2f"|format(o.price) }}
+                                    <br>From: {{ o.pharmacy.company_name or o.pharmacy.username }}
+                                </small>
+                            </div>
+                            <span class="badge bg-primary align-self-start">{{ o.status|title }}</span>
+                        </div> -->
+                        <!-- <div class="mt-2 d-flex gap-2">
+                            {% if o.payment_status == 'pending' %}
+                                <a href="{{ url_for('user_pay_pharmacy', order_id=o.id) }}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-credit-card me-1"></i>Pay ${{ "%.2f"|format(o.price) }}
+                                </a>
+                            {% endif %}w
+                            {% if o.receipt_number %}
+                                <a href="{{ url_for('view_receipt', receipt_number=o.receipt_number) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-receipt me-1"></i>Receipt
+                                </a>
+                            {% endif %}
+                        </div> -->
+                    <!-- </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">No orders yet. Place your first order below.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div> -->
+
+    <!-- <div class="col-md-5">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Place New Order</h6></div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('user_place_order') }}">
+                    <div class="mb-2">
+                        <label class="form-label small">Choose Pharmacy</label>
+                        <select name="pharmacy_id" class="form-select form-select-sm" required>
+                            {% for p in pharmacies %}
+                                <option value="{{ p.id }}">{{ p.company_name or p.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Medicine Name</label>
+                        <input type="text" name="medicine_name" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 mb-2">
+                            <label class="form-label small">Qty</label>
+                            <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-4 mb-2">
+                            <label class="form-label small">Unit</label>
+                            <select name="unit" class="form-select form-select-sm">
+                                <option value="strip">Strip</option>
+                                <option value="box">Box</option>
+                                <option value="bottle">Bottle</option>
+                            </select>
+                        </div>
+                        <div class="col-4 mb-2">
+                            <label class="form-label small">Price</label>
+                            <input type="number" step="0.01" name="price" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+                    <button class="btn gradient-btn w-100 btn-sm">Place Order</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Recent Receipts</h6></div>
+            <div class="card-body">
+                {% for r in receipts %}
+                <div class="border-bottom pb-2 mb-2 small">
+                    <strong>${{ "%.2f"|format(r.amount) }}</strong>
+                    <a href="{{ url_for('view_receipt', receipt_number=r.receipt_number) }}" class="float-end">View</a>
+                    <br><small class="text-muted">{{ r.receipt_number }}</small>
+                </div>
+                {% else %}
+                <p class="text-muted small">No receipts yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div> -->
+</div>
+{% endblock %}

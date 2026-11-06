@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Upload Certificate{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header"><h5><i class="fas fa-file-medical me-2 text-primary"></i>Upload Quality Certificate</h5></div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Upload the quality certificate for admin approval. Once approved, you can select a supplier.
+                </div>
+                <form method="POST" enctype="multipart/form-data">
+                    {% if order %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-shopping-cart me-2"></i>
+                        Order #{{ order.id }} - {{ order.product_name }}
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                    </div>
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Medicine Name</label>
+                            <input type="text" name="product_name" class="form-control" value="{{ order.product_name if order else '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Batch Number</label>
+                            <input type="text" name="batch_number" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Quality Grade</label>
+                            <select name="quality_grade" class="form-control" required>
+                                <option value="A+">A+ - Premium</option>
+                                <option value="A">A - Excellent</option>
+                                <option value="B">B - Good</option>
+                                <option value="C">C - Standard</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" name="expiry_date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-file-upload me-1"></i>Certificate File</label>
+                        <input type="file" name="certificate_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.gif,.doc,.docx" required>
+                        <small class="text-muted">PDF, PNG, JPG, JPEG, GIF, DOC, DOCX</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Test Results</label>
+                        <textarea name="test_results" class="form-control" rows="4" placeholder="Enter lab test results, purity, safety parameters..."></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Submit Certificate
+                        </button>
+                        <a href="{{ url_for('manufacturer_dashboard') }}" class="btn btn-secondary mt-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

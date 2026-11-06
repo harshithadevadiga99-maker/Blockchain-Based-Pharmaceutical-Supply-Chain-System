@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Supplier Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-truck me-2 text-warning"></i>Supplier Dashboard</h2>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-id-card me-2"></i>
+    <strong>{{ current_user.company_name or current_user.username }}</strong>
+    | License: <strong>{{ current_user.license_number }}</strong>
+    | Wallet: <strong>${{ "%.2f"|format(current_user.wallet_balance or 0) }}</strong>
+    | Total Earnings: <strong>${{ "%.2f"|format(total_earnings) }}</strong>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3"><div class="card text-white bg-danger p-3"><h6>New Requests</h6><h2>{{ unassigned|length }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-warning p-3"><h6>To Order Mfg</h6><h2>{{ ready_to_order_mfg|length }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-info p-3"><h6>To Pay Mfg</h6><h2>{{ ready_to_pay_mfg|length }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-success p-3"><h6>Ready to Ship</h6><h2>{{ ready_to_ship|length }}</h2></div></div>
+</div>
+
+<!-- ACTION 1: Accept new pharmacy requests -->
+{% if unassigned %}
+<div class="card mb-3">
+    <div class="card-header bg-danger text-white">
+        <h6 class="mb-0"><i class="fas fa-bell me-2"></i>New Pharmacy Requests — Accept Now</h6>
+    </div>
+    <div class="card-body">
+        {% for r in unassigned %}
+        <div class="card mb-2">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">{{ r.medicine_name }}</h6>
+                    <small class="text-muted">
+                        From: <strong>{{ r.pharmacy.company_name or r.pharmacy.username }}</strong>
+                        | Qty: {{ r.quantity }} {{ r.unit }}
+                        | Expected: ${{ "%.2f"|format(r.expected_price) }}
+                    </small>
+                </div>
+                <a href="{{ url_for('supplier_accept_request', req_id=r.id) }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-check me-1"></i>Accept Request
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ACTION 2: Send order to manufacturer -->
+{% if ready_to_order_mfg %}
+<div class="card mb-3">
+    <div class="card-header bg-warning text-dark">
+        <h6 class="mb-0"><i class="fas fa-paper-plane me-2"></i>Pharmacy Paid — Send Order to Manufacturer</h6>
+    </div>
+    <div class="card-body">
+        {% for r in ready_to_order_mfg %}
+        <div class="card mb-2">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">{{ r.medicine_name }}</h6>
+                    <small class="text-muted">
+                        Pharmacy: {{ r.pharmacy.company_name }} | Qty: {{ r.quantity }} {{ r.unit }}
+                        | You received: ${{ "%.2f"|format(r.final_price or 0) }}
+                    </small>
+                </div>
+                <a href="{{ url_for('supplier_send_order_to_manufacturer', req_id=r.id) }}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-paper-plane me-1"></i>Send to Manufacturer
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ACTION 3: Pay manufacturer -->
+{% if ready_to_pay_mfg %}
+<div class="card mb-3">
+    <div class="card-header bg-info text-white">
+        <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>Pay Manufacturer</h6>
+    </div>
+    <div class="card-body">
+        {% for r in ready_to_pay_mfg %}
+        <div class="card mb-2">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">{{ r.medicine_name }}</h6>
+                    <small class="text-muted">
+                        Manufacturer: {{ r.manufacturer.company_name if r.manufacturer else 'N/A' }}
+                        | Wholesale: <strong>${{ "%.2f"|format((r.final_price or 0) * 0.7) }}</strong>
+                    </small>
+                </div>
+                <a href="{{ url_for('supplier_pay_manufacturer', req_id=r.id) }}" class="btn btn-info btn-sm">
+                    <i class="fas fa-credit-card me-1"></i>Pay Manufacturer
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ACTION 4: Ship to pharmacy -->
+{% if ready_to_ship %}
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white">
+        <h6 class="mb-0"><i class="fas fa-shipping-fast me-2"></i>Manufacturer Dispatched — Ship to Pharmacy</h6>
+    </div>
+    <div class="card-body">
+        {% for r in ready_to_ship %}
+        <div class="card mb-2">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">{{ r.medicine_name }}</h6>
+                    <small class="text-muted">
+                        To: {{ r.pharmacy.company_name }} | Qty: {{ r.quantity }}
+                    </small>
+                </div>
+                <a href="{{ url_for('supplier_ship_request', req_id=r.id) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-shipping-fast me-1"></i>Ship to Pharmacy
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ALL REQUESTS -->
+<div class="card">
+    <div class="card-header"><h6 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>All My Assigned Requests</h6></div>
+    <div class="card-body">
+        {% for r in requests %}
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="mb-1">{{ r.medicine_name }} <span class="badge bg-secondary">#{{ r.id }}</span></h6>
+                        <small class="text-muted">
+                            Pharmacy: {{ r.pharmacy.company_name or r.pharmacy.username }}
+                            | Qty: {{ r.quantity }} {{ r.unit }}
+                            {% if r.final_price %} | ${{ "%.2f"|format(r.final_price) }}{% endif %}
+                            {% if r.manufacturer %} | Mfg: {{ r.manufacturer.company_name or r.manufacturer.username }}{% endif %}
+                        </small>
+                    </div>
+                    <span class="badge bg-primary">{{ r.status|replace('_',' ')|title }}</span>
+                </div>
+                <div class="mt-2 d-flex gap-2 flex-wrap">
+                    {% if r.status == 'shipped' %}
+                        <a href="{{ url_for('supplier_deliver_request', req_id=r.id) }}" class="btn btn-sm btn-success">
+                            <i class="fas fa-check-circle me-1"></i>Mark Delivered
+                        </a>
+                    {% endif %}
+                    {% if r.pharmacy_payment_id %}
+                        <a href="{{ url_for('view_receipt', receipt_number=r.pharmacy_payment_id) }}" class="btn btn-sm btn-outline-success">Pharmacy Receipt</a>
+                    {% endif %}
+                    {% if r.supplier_payment_id %}
+                        <a href="{{ url_for('view_receipt', receipt_number=r.supplier_payment_id) }}" class="btn btn-sm btn-outline-info">Mfg Receipt</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-4">No assigned requests yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

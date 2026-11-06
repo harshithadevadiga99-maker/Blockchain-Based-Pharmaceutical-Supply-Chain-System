@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}License Registry{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-id-card me-2 text-primary"></i>Official License Registry</h2>
+
+<div class="alert alert-info">
+    <i class="fas fa-shield-alt me-2"></i>
+    These are the only valid license numbers. Fake licenses are rejected and logged on the blockchain.
+</div>
+
+{% set roles = {'manufacturer': 'primary', 'supplier': 'warning', 'pharmacy': 'success'} %}
+
+{% for role in ['manufacturer', 'supplier', 'pharmacy'] %}
+<div class="card mb-3">
+    <div class="card-header bg-{{ roles[role] }} {% if role != 'supplier' %}text-white{% else %}text-dark{% endif %}">
+        <h5 class="mb-0"><i class="fas fa-{% if role == 'manufacturer' %}industry{% elif role == 'supplier' %}truck{% else %}clinic-medical{% endif %} me-2"></i>{{ role|title }} Licenses</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th>License Number</th>
+                    <th>Company</th>
+                    <th>City</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lic, info in licenses.items() %}
+                    {% if info.role == role %}
+                    {% set used = User.query.filter_by(license_number=lic).first() %}
+                    <tr>
+                        <td><code>{{ lic }}</code></td>
+                        <td>{{ info.company }}</td>
+                        <td>{{ info.city }}</td>
+                        <td>
+                            {% if used %}
+                                <span class="badge bg-success">Registered</span>
+                                <small class="text-muted">({{ used.username }})</small>
+                            {% else %}
+                                <span class="badge bg-secondary">Available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

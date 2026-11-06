@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}New Medicine Request{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle me-2 text-success"></i>New Medicine Request</h5>
+                <small class="text-muted">Choose from available medicines. Supplier will confirm price and stock.</small>
+            </div>
+            <div class="card-body p-4">
+                {% if not medicines %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>No medicines available yet.</strong>
+                        <p class="mb-0 mt-2">Medicines appear here after:</p>
+                        <ol class="mb-0">
+                            <li>Manufacturer adds medicine with certificate</li>
+                            <li>Admin approves the certificate</li>
+                        </ol>
+                        <hr>
+                        <small class="text-muted">
+                            💡 <strong>Demo tip:</strong> Login as <code>manufacturer1 / mfg123</code> to add a medicine,
+                            then as <code>admin / admin123</code> to approve its certificate.
+                        </small>
+                    </div>
+                    <a href="{{ url_for('pharmacy_dashboard') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                {% else %}
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Select Medicine *</label>
+                        <select name="medicine_id" class="form-select" required id="medicineSelect">
+                            <option value="">-- Choose Medicine --</option>
+                            {% for m in medicines %}
+                                <option value="{{ m.id }}"
+                                        data-name="{{ m.name }}"
+                                        data-comp="{{ m.composition or '' }}"
+                                        data-cat="{{ m.category or '' }}"
+                                        data-mfg="{{ m.manufacturer.company_name or m.manufacturer.username if m.manufacturer else 'N/A' }}"
+                                        data-uses="{{ m.uses or '' }}"
+                                        data-expiry="{{ m.expiry_date.strftime('%Y-%m-%d') if m.expiry_date else 'N/A' }}">
+                                    {{ m.name }} {% if m.composition %}({{ m.composition }}){% endif %} — {{ m.manufacturer.company_name or m.manufacturer.username if m.manufacturer else 'Unknown' }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="medInfo" class="alert alert-info" style="display:none;">
+                        <h6 id="medName"></h6>
+                        <small id="medComp" class="d-block text-muted"></small>
+                        <small id="medCat" class="d-block text-muted"></small>
+                        <small id="medMfg" class="d-block text-muted"></small>
+                        <small id="medUses" class="d-block text-muted mt-1"></small>
+                        <small id="medExpiry" class="d-block text-muted"></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Quantity *</label>
+                        <input type="number" step="0.01" name="quantity" class="form-control" required min="1">
+                        <small class="text-muted">Available quantities are hidden — supplier will confirm stock.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Special requirements..."></textarea>
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Workflow:</strong>
+                        <ol class="mb-0 mt-1">
+                            <li>Supplier accepts request</li>
+                            <li>You pay supplier → receipt generated</li>
+                            <li>Supplier sends order to manufacturer</li>
+                            <li>Supplier pays manufacturer → receipt generated</li>
+                            <li>Manufacturer processes → packs → dispatches</li>
+                            <li>Supplier ships to you → delivered</li>
+                        </ol>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn gradient-btn btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>Send Request
+                        </button>
+                        <a href="{{ url_for('pharmacy_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+
+                <script>
+                    document.getElementById('medicineSelect').addEventListener('change', function() {
+                        const opt = this.options[this.selectedIndex];
+                        const info = document.getElementById('medInfo');
+                        if (this.value) {
+                            document.getElementById('medName').textContent = opt.dataset.name;
+                            document.getElementById('medComp').textContent = 'Composition: ' + (opt.dataset.comp || 'N/A');
+                            document.getElementById('medCat').textContent = 'Category: ' + (opt.dataset.cat || 'N/A');
+                            document.getElementById('medMfg').textContent = 'Manufacturer: ' + (opt.dataset.mfg || 'N/A');
+                            document.getElementById('medUses').textContent = opt.dataset.uses ? 'Uses: ' + opt.dataset.uses : '';
+                            document.getElementById('medExpiry').textContent = 'Expiry: ' + (opt.dataset.expiry || 'N/A');
+                            info.style.display = '';
+                        } else {
+                            info.style.display = 'none';
+                        }
+                    });
+                </script>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

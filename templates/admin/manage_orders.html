@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Manage Orders{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5><i class="fas fa-clipboard-list me-2"></i>All Medicine Orders</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Medicine</th><th>Consumer</th>
+                        <th>Manufacturer</th><th>Supplier</th>
+                        <th>Status</th><th>Payment</th><th>Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.product_name }}</td>
+                        <td>{{ User.query.get(order.consumer_id).username if order.consumer_id else 'N/A' }}</td>
+                        <td>{{ User.query.get(order.manufacturer_id).username if order.manufacturer_id else 'N/A' }}</td>
+                        <td>
+                            {% if order.supplier_id %}
+                                {{ User.query.get(order.supplier_id).username }}
+                            {% else %}
+                                <span class="text-danger">Not Assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% elif order.status == 'pending' %}bg-warning{% else %}bg-info{% endif %}">
+                                {{ order.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if order.payment_status == 'supplier_paid' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ order.payment_status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_update_order_status', order_id=order.id) }}" style="display:inline;">
+                                <select name="status" class="form-select form-select-sm" style="width:auto;display:inline;">
+                                    <option value="">Change...</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="manufacturer_processing">Processing</option>
+                                    <option value="certificate_submitted">Cert Submitted</option>
+                                    <option value="admin_approved">Admin Approved</option>
+                                    <option value="supplier_selected">Supplier Selected</option>
+                                    <option value="supplier_processing">Supplier Processing</option>
+                                    <option value="shipping">Shipping</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted">No orders.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

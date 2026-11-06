@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Blockchain - Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-cube me-2 text-primary"></i>
+        Blockchain Trail - Order #{{ order.id }}
+    </h2>
+    <a href="{{ url_for('consumer_dashboard') if current_user.role == 'consumer' else url_for('dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header"><h5>{{ order.product_name }}</h5></div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3"><strong>Status:</strong> {{ order.status|title }}</div>
+            <div class="col-md-3"><strong>Quantity:</strong> {{ order.quantity }} {{ order.unit }}</div>
+            <div class="col-md-3"><strong>Price:</strong> ${{ "%.2f"|format(order.price) }}</div>
+            <div class="col-md-3"><strong>Events:</strong> {{ verified_blocks|length }} blocks</div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-3"><i class="fas fa-link me-2"></i>Verified Supply Chain Events</h4>
+
+{% if verified_blocks %}
+    <div class="timeline">
+        {% for v in verified_blocks %}
+        <div class="card mb-3 {% if v.valid %}border-success{% else %}border-danger{% endif %}">
+            <div class="card-header d-flex justify-content-between">
+                <div>
+                    <span class="badge bg-primary">Block #{{ v.block.index }}</span>
+                    <span class="badge bg-info ms-2">{{ v.block.event_type }}</span>
+                </div>
+                <div>
+                    {% if v.valid %}
+                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>
+                    {% else %}
+                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Tampered</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <small class="text-muted d-block mb-1">
+                    <i class="far fa-clock me-1"></i>{{ v.block.timestamp[:19] }}
+                </small>
+                <small class="text-muted d-block">Hash:</small>
+                <code style="font-size:0.7rem;word-break:break-all;">{{ v.block.hash }}</code>
+                <small class="text-muted d-block mt-2">Event Data:</small>
+                <pre class="bg-light p-2 rounded mb-0" style="font-size:0.75rem;max-height:120px;overflow:auto;">{{ v.block.event_data }}</pre>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>No blockchain events found for this order.
+    </div>
+{% endif %}
+
+<a href="{{ url_for('blockchain_explorer') }}" class="btn btn-outline-primary">
+    <i class="fas fa-cubes me-2"></i>View Full Blockchain
+</a>
+{% endblock %}

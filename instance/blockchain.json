@@ -1,0 +1,189 @@
+{
+  "chain": [
+    {
+      "index": 0,
+      "timestamp": "2026-10-13 06:50:45.212759",
+      "event_type": "GENESIS",
+      "event_data": {
+        "message": "Medicine Supply Chain Genesis Block"
+      },
+      "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "nonce": 17,
+      "hash": "0024e8a4a0c1ab0857725b089695d371e48d4d833f4197338958ea955b131eaa"
+    },
+    {
+      "index": 1,
+      "timestamp": "2026-10-13 06:50:45.218747",
+      "event_type": "PHARMACY_REQUEST_CREATED",
+      "event_data": {
+        "request_id": 1,
+        "pharmacy": "pharmacy1",
+        "pharmacy_license": "LIC-PHR-001",
+        "medicine": "Amoxicillin 250mg",
+        "quantity": 200.0,
+        "manufacturer": "manufacturer1",
+        "timestamp": "2026-10-13T06:50:45.211770"
+      },
+      "previous_hash": "0024e8a4a0c1ab0857725b089695d371e48d4d833f4197338958ea955b131eaa",
+      "nonce": 159,
+      "hash": "00554660966e00c5d8566c553e1a253350514d4bf872c413ffb1aeeecb959420"
+    },
+    {
+      "index": 2,
+      "timestamp": "2026-10-13 06:51:12.673323",
+      "event_type": "SUPPLIER_ACCEPTED_REQUEST",
+      "event_data": {
+        "request_id": 1,
+        "pharmacy": "pharmacy1",
+        "supplier": "supplier1",
+        "manufacturer": "manufacturer1",
+        "medicine": "Amoxicillin 250mg",
+        "final_price": 2400.0,
+        "timestamp": "2026-10-13T06:51:12.673323"
+      },
+      "previous_hash": "00554660966e00c5d8566c553e1a253350514d4bf872c413ffb1aeeecb959420",
+      "nonce": 187,
+      "hash": "0055482debf0e5c4fffa4cd8ac8c9ecc74a93358a02c4480bccb7dce69503c68"
+    },
+    {
+      "index": 3,
+      "timestamp": "2026-10-13 06:56:18.588032",
+      "event_type": "PHARMACY_PAID_SUPPLIER",
+      "event_data": {
+        "request_id": 1,
+        "pharmacy": "pharmacy1",
+        "supplier": "supplier1",
+        "amount": 2400.0,
+        "receipt": "RCPT-20261013065618-89A1A0",
+        "timestamp": "2026-10-13T06:56:18.588032"
+      },
+      "previous_hash": "0055482debf0e5c4fffa4cd8ac8c9ecc74a93358a02c4480bccb7dce69503c68",
+      "nonce": 21,
+      "hash": "00d38f9d26ce39871dddf100c749e07c36f7520e9fe9d139b15af0d874633a50"
+    },
+    {
+      "index": 4,
+      "timestamp": "2026-10-13 06:56:51.489851",
+      "event_type": "SUPPLIER_SENT_ORDER_TO_MANUFACTURER",
+      "event_data": {
+        "request_id": 1,
+        "supplier": "supplier1",
+        "manufacturer": "manufacturer1",
+        "medicine": "Amoxicillin 250mg",
+        "quantity": 200.0,
+        "timestamp": "2026-10-13T06:56:51.489851"
+      },
+      "previous_hash": "00d38f9d26ce39871dddf100c749e07c36f7520e9fe9d139b15af0d874633a50",
+      "nonce": 251,
+      "hash": "00e1d5855362dc32f360e7e4f9977a9bdfd3a03f1972475459bfc32162249d6c"
+    },
+    {
+      "index": 5,
+      "timestamp": "2026-10-13 06:57:02.544679",
+      "event_type": "SUPPLIER_PAID_MANUFACTURER",
+      "event_data": {
+        "request_id": 1,
+        "supplier": "supplier1",
+        "manufacturer": "manufacturer1",
+        "amount": 1680.0,
+        "receipt": "RCPT-20261013065702-190445",
+        "timestamp": "2026-10-13T06:57:02.544679"
+      },
+      "previous_hash": "00e1d5855362dc32f360e7e4f9977a9bdfd3a03f1972475459bfc32162249d6c",
+      "nonce": 490,
+      "hash": "0051a9438f01a972d99197762aca1d9191166c32fa55a1a9fec4bb0abbc30894"
+    },
+    {
+      "index": 6,
+      "timestamp": "2026-10-13 06:57:39.325407",
+      "event_type": "MANUFACTURER_PROCESSING",
+      "event_data": {
+        "request_id": 1,
+        "medicine": "Amoxicillin 250mg",
+        "manufacturer": "manufacturer1",
+        "packing_notes": "tddt",
+        "timestamp": "2026-10-13T06:57:39.325407"
+      },
+      "previous_hash": "0051a9438f01a972d99197762aca1d9191166c32fa55a1a9fec4bb0abbc30894",
+      "nonce": 51,
+      "hash": "00606c1691e289855863ad75d0a1d51c68601d6b06256db9699e5b5d8869446f"
+    },
+    {
+      "index": 7,
+      "timestamp": "2026-10-13 06:57:44.801139",
+      "event_type": "MANUFACTURER_PACKED",
+      "event_data": {
+        "request_id": 1,
+        "medicine": "Amoxicillin 250mg",
+        "manufacturer": "manufacturer1",
+        "timestamp": "2026-10-13T06:57:44.801139"
+      },
+      "previous_hash": "00606c1691e289855863ad75d0a1d51c68601d6b06256db9699e5b5d8869446f",
+      "nonce": 505,
+      "hash": "00099f646eb3aa63ed051bbb28e3e30acb26be907a1fb5e5b10e7003bc390b8a"
+    },
+    {
+      "index": 8,
+      "timestamp": "2026-10-13 06:57:50.083895",
+      "event_type": "MANUFACTURER_DISPATCHED",
+      "event_data": {
+        "request_id": 1,
+        "medicine": "Amoxicillin 250mg",
+        "manufacturer": "manufacturer1",
+        "dispatch_notes": "",
+        "timestamp": "2026-10-13T06:57:50.083895"
+      },
+      "previous_hash": "00099f646eb3aa63ed051bbb28e3e30acb26be907a1fb5e5b10e7003bc390b8a",
+      "nonce": 189,
+      "hash": "003757b62fdfa18d04274000712a4375991f00d01eda819bc2c13aa1aaa55645"
+    },
+    {
+      "index": 9,
+      "timestamp": "2026-10-13 06:58:12.065376",
+      "event_type": "ORDER_SHIPPED",
+      "event_data": {
+        "request_id": 1,
+        "medicine": "Amoxicillin 250mg",
+        "supplier": "supplier1",
+        "tracking": "MED-1-202610130658",
+        "timestamp": "2026-10-13T06:58:12.065376"
+      },
+      "previous_hash": "003757b62fdfa18d04274000712a4375991f00d01eda819bc2c13aa1aaa55645",
+      "nonce": 78,
+      "hash": "0039b11ac1596760549026ca4b64dea3d364727a4709d5e411f26974958e46cb"
+    },
+    {
+      "index": 10,
+      "timestamp": "2026-10-13 07:03:00.524237",
+      "event_type": "MEDICINE_ADDED",
+      "event_data": {
+        "product_id": 5,
+        "certificate_id": 2,
+        "medicine": "dolo",
+        "batch": "12345",
+        "manufacturer": "manufacturer1",
+        "manufacturer_license": "LIC-MFG-001",
+        "timestamp": "2026-10-13T07:03:00.524237"
+      },
+      "previous_hash": "0039b11ac1596760549026ca4b64dea3d364727a4709d5e411f26974958e46cb",
+      "nonce": 33,
+      "hash": "00e43d83e1ebea110f2b6b990b675816133be34c3cc37f1825f5f5941428be04"
+    },
+    {
+      "index": 11,
+      "timestamp": "2026-10-13 07:06:40.146254",
+      "event_type": "CERTIFICATE_APPROVED",
+      "event_data": {
+        "certificate_id": 2,
+        "medicine": "dolo",
+        "batch": "12345",
+        "manufacturer": "manufacturer1",
+        "admin": "admin",
+        "timestamp": "2026-10-13T07:06:40.109352"
+      },
+      "previous_hash": "00e43d83e1ebea110f2b6b990b675816133be34c3cc37f1825f5f5941428be04",
+      "nonce": 297,
+      "hash": "004e0d268b1bf6a36de9458f4a721715f7907a8c2255dc0fe34e97b4bc8a635e"
+    }
+  ]
+}

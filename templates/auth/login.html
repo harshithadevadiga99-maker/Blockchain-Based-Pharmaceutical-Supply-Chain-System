@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4 class="mb-0"><i class="fas fa-sign-in-alt me-2 text-primary"></i>Login</h4>
+                <small class="text-muted">Welcome back to MediChain</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn gradient-btn w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </button>
+                </form>
+                <div class="text-center mt-3">
+                    <p class="text-muted mb-0">
+                        New here? <a href="{{ url_for('register') }}">Create account</a>
+                    </p>
+                </div>
+                <hr>
+                <div class="bg-light p-3 rounded">
+                    <h6 class="mb-2"><i class="fas fa-key me-2 text-primary"></i>Demo Accounts</h6>
+                    <table class="table table-sm mb-0 small">
+                        <tr><td><strong>Admin</strong></td><td>admin / admin123</td></tr>
+                        <tr><td><strong>Manufacturer</strong></td><td>manufacturer1 / mfg123</td></tr>
+                        <tr><td><strong>Supplier</strong></td><td>supplier1 / sup123</td></tr>
+                        <tr><td><strong>Pharmacy</strong></td><td>pharmacy1 / ph123</td></tr>
+                        <tr><td><strong>User</strong></td><td>user1 / user123</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

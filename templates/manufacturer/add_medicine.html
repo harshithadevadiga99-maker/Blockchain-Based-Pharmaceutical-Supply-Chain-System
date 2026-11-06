@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Add Medicine{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle me-2 text-success"></i>Add New Medicine with Certificate</h5>
+                <small class="text-muted">Medicine becomes available only after admin approves the certificate</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    <h6 class="text-primary mb-3"><i class="fas fa-pills me-2"></i>Medicine Details</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Medicine Name *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Composition</label>
+                            <input type="text" name="composition" class="form-control" placeholder="e.g., Paracetamol 500mg">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Category *</label>
+                            <select name="category" class="form-select" required>
+                                <option value="Tablet">Tablet</option>
+                                <option value="Capsule">Capsule</option>
+                                <option value="Syrup">Syrup</option>
+                                <option value="Injection">Injection</option>
+                                <option value="Ointment">Ointment</option>
+                                <option value="Drops">Drops</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Batch Number</label>
+                            <input type="text" name="batch_number" class="form-control" placeholder="e.g., B2024001">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Prescription Required</label>
+                            <div class="form-check mt-2">
+                                <input type="checkbox" name="prescription_required" class="form-check-input" id="presc">
+                                <label class="form-check-label" for="presc">
+                                    <i class="fas fa-prescription text-danger"></i> Yes
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Mfg Date *</label>
+                            <input type="date" name="mfg_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Expiry Date *</label>
+                            <input type="date" name="expiry_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Quantity *</label>
+                            <input type="number" step="0.01" name="quantity" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Unit</label>
+                            <select name="unit" class="form-select">
+                                <option value="strip">Strip</option>
+                                <option value="box">Box</option>
+                                <option value="bottle">Bottle</option>
+                                <option value="vial">Vial</option>
+                                <option value="tube">Tube</option>
+                                <option value="pieces">Pieces</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Price per Unit ($) *</label>
+                            <input type="number" step="0.01" name="price_per_unit" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Uses, side effects, storage instructions..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Medicine Image</label>
+                        <input type="file" name="product_image" class="form-control" accept="image/*">
+                        <small class="text-muted">Supported: PNG, JPG, JPEG, GIF, WEBP (Max 16MB)</small>
+                    </div>
+
+                    <hr class="my-4">
+                    <h6 class="text-primary mb-3"><i class="fas fa-file-medical me-2"></i>Quality Certificate (Required for Admin Approval)</h6>
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Upload the quality certificate. Admin will review and approve. Medicine becomes available after approval.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Quality Grade *</label>
+                            <select name="quality_grade" class="form-select" required>
+                                <option value="A+">A+ - Premium</option>
+                                <option value="A" selected>A - Excellent</option>
+                                <option value="B">B - Good</option>
+                                <option value="C">C - Standard</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Certificate File *</label>
+                            <input type="file" name="certificate_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.gif,.doc,.docx" required>
+                            <small class="text-muted">PDF, PNG, JPG, JPEG, GIF, DOC, DOCX</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Test Results</label>
+                        <textarea name="test_results" class="form-control" rows="3" placeholder="Lab test results, purity, safety parameters..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn gradient-btn btn-lg">
+                            <i class="fas fa-upload me-2"></i>Submit Medicine + Certificate
+                        </button>
+                        <a href="{{ url_for('manufacturer_dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

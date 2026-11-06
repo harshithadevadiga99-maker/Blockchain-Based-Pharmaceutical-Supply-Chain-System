@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Track Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-shipping-fast me-2 text-info"></i>Track Order #{{ order.id }}</h2>
+
+<div class="card mb-4">
+    <div class="card-header"><h5>{{ order.product_name }}</h5></div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3"><strong>Status:</strong>
+                <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% elif order.status == 'shipping' %}bg-info{% else %}bg-warning{% endif %}">
+                    {{ order.status|title }}
+                </span>
+            </div>
+            <div class="col-md-3"><strong>Payment:</strong>
+                <span class="badge {% if order.payment_status == 'supplier_paid' %}bg-success{% else %}bg-warning{% endif %}">
+                    {{ order.payment_status|title }}
+                </span>
+            </div>
+            <div class="col-md-3"><strong>Tracking:</strong>
+                {% if order.tracking_number %}<span class="badge bg-info">{{ order.tracking_number }}</span>{% else %}-{% endif %}
+            </div>
+            <div class="col-md-3"><strong>Total:</strong>
+                <span class="badge bg-success">${{ "%.2f"|format(order.price) }}</span>
+            </div>
+        </div>
+        {% if order.status == 'cancelled' %}
+        <div class="alert alert-danger mt-3">
+            <i class="fas fa-times-circle me-2"></i><strong>Cancelled:</strong> {{ order.notes or 'Certificate rejected' }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<h4 class="mb-3"><i class="fas fa-link me-2"></i>Supply Chain</h4>
+<div class="row">
+    <!-- Manufacturer -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 {% if order.status not in ['pending','cancelled'] %}border-success{% else %}border-secondary{% endif %}">
+            <div class="card-body text-center">
+                <i class="fas fa-industry fa-3x {% if order.status not in ['pending','cancelled'] %}text-success{% else %}text-muted{% endif %}"></i>
+                <h6 class="mt-2">Manufacturer</h6>
+                <p class="small text-muted">{{ chain_info.manufacturer.username if chain_info.manufacturer else 'N/A' }}</p>
+                <span class="badge bg-{% if order.status not in ['pending','cancelled'] %}success{% else %}secondary{% endif %}">
+                    {% if order.status not in ['pending','cancelled'] %}<i class="fas fa-check-circle me-1"></i>Processed{% else %}Pending{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 {% if order.status in ['supplier_processing','shipping','delivered'] %}border-success{% elif order.supplier_id %}border-warning{% else %}border-secondary{% endif %}">
+            <div class="card-body text-center">
+                <i class="fas fa-truck fa-3x {% if order.status in ['supplier_processing','shipping','delivered'] %}text-success{% elif order.supplier_id %}text-warning{% else %}text-muted{% endif %}"></i>
+                <h6 class="mt-2">Supplier</h6>
+                <p class="small text-muted">{{ chain_info.supplier.username if chain_info.supplier else 'Not Assigned' }}</p>
+                <span class="badge bg-{% if order.status in ['supplier_processing','shipping','delivered'] %}success{% elif order.supplier_id %}warning{% else %}secondary{% endif %}">
+                    {% if order.status in ['supplier_processing','shipping','delivered'] %}<i class="fas fa-check-circle me-1"></i>Shipped{% elif order.supplier_id %}Assigned{% else %}Pending{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consumer -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 {% if order.status == 'delivered' %}border-success{% else %}border-secondary{% endif %}">
+            <div class="card-body text-center">
+                <i class="fas fa-user fa-3x {% if order.status == 'delivered' %}text-success{% else %}text-muted{% endif %}"></i>
+                <h6 class="mt-2">You</h6>
+                <p class="small text-muted">{{ chain_info.consumer.username if chain_info.consumer else 'N/A' }}</p>
+                <span class="badge bg-{% if order.status == 'delivered' %}success{% else %}warning{% endif %}">
+                    {% if order.status == 'delivered' %}<i class="fas fa-check-circle me-1"></i>Delivered{% else %}Pending{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header"><h6><i class="fas fa-history me-2"></i>Timeline</h6></div>
+    <div class="card-body">
+        <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between">
+                <span><i class="fas fa-shopping-cart text-primary me-2"></i>Order Placed</span>
+                <span class="badge bg-primary">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </li>
+            {% if order.payment_date %}
+            <li class="list-group-item d-flex justify-content-between">
+                <span><i class="fas fa-credit-card text-success me-2"></i>Payment Completed</span>
+                <span class="badge bg-success">{{ order.payment_date.strftime('%Y-%m-%d %H:%M') }}</span>
+            </li>
+            {% endif %}
+            {% if order.shipping_date %}
+            <li class="list-group-item d-flex justify-content-between">
+                <span><i class="fas fa-shipping-fast text-info me-2"></i>Shipped ({{ order.tracking_number }})</span>
+                <span class="badge bg-info">{{ order.shipping_date.strftime('%Y-%m-%d %H:%M') }}</span>
+            </li>
+            {% endif %}
+            {% if order.delivery_date %}
+            <li class="list-group-item d-flex justify-content-between">
+                <span><i class="fas fa-check-circle text-success me-2"></i>Delivered</span>
+                <span class="badge bg-success">{{ order.delivery_date.strftime('%Y-%m-%d %H:%M') }}</span>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+<a href="{{ url_for('consumer_dashboard') }}" class="btn btn-secondary mt-3">
+    <i class="fas fa-arrow-left me-2"></i>Back
+</a>
+{% endblock %}

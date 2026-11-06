@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Manufacturer Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-industry me-2 text-primary"></i>Manufacturer Dashboard</h2>
+    <a href="{{ url_for('add_medicine') }}" class="btn gradient-btn">
+        <i class="fas fa-plus-circle me-2"></i>Add Medicine + Certificate
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-id-card me-2"></i>
+    <strong>{{ current_user.company_name or current_user.username }}</strong>
+    | License: <strong>{{ current_user.license_number }}</strong>
+    | Wallet: <strong>${{ "%.2f"|format(current_user.wallet_balance or 0) }}</strong>
+    | Revenue: <strong>${{ "%.2f"|format(total_revenue) }}</strong>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3"><div class="card text-white bg-primary p-3"><h6>Medicines</h6><h2>{{ total_products }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-warning p-3"><h6>Pending Certs</h6><h2>{{ pending_certs }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-success p-3"><h6>Approved</h6><h2>{{ approved_certs }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-info p-3"><h6>Incoming Orders</h6><h2>{{ incoming_orders|length }}</h2></div></div>
+</div>
+
+<!-- ✅ INCOMING ORDERS FROM SUPPLIERS -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="fas fa-inbox me-2"></i>Orders Received from Suppliers</h5>
+    </div>
+    <div class="card-body">
+        {% if incoming_orders %}
+            {% for o in incoming_orders %}
+            <div class="card mb-2" style="border-left: 5px solid
+                {% if o.status in ['manufacturer_confirmed','supplier_paid_manufacturer'] %}#ffc107
+                {% elif o.status == 'manufacturer_processing' %}#17a2b8
+                {% elif o.status == 'manufacturer_packed' %}#0d6efd
+                {% elif o.status == 'manufacturer_dispatched' %}#6f42c1
+                {% elif o.status == 'shipped' %}#0dcaf0
+                {% elif o.status == 'delivered' %}#198754
+                {% else %}#6c757d{% endif %};">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">{{ o.medicine_name }} <span class="badge bg-secondary">#{{ o.id }}</span></h6>
+                            <small class="text-muted">
+                                Supplier: <strong>{{ o.supplier.company_name or o.supplier.username if o.supplier else 'N/A' }}</strong>
+                                | Pharmacy: <strong>{{ o.pharmacy.company_name or o.pharmacy.username }}</strong>
+                                | Qty: <strong>{{ o.quantity }} {{ o.unit }}</strong>
+                            </small>
+                            <br>
+                            <span class="badge bg-primary mt-1">
+                                {{ o.status|replace('_', ' ')|title }}
+                            </span>
+                            {% if o.tracking_number %}
+                                <span class="badge bg-info mt-1">{{ o.tracking_number }}</span>
+                            {% endif %}
+                            {% if o.packing_notes %}
+                                <br><small class="text-muted"><i class="fas fa-box me-1"></i>{{ o.packing_notes }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex flex-column gap-1">
+                            {% if o.status in ['manufacturer_confirmed', 'supplier_paid_manufacturer'] %}
+                                <a href="{{ url_for('manufacturer_process_order', req_id=o.id) }}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-play me-1"></i>Process Order
+                                </a>
+                            {% elif o.status == 'manufacturer_processing' %}
+                                <form method="POST" action="{{ url_for('manufacturer_pack_order', req_id=o.id) }}">
+                                    <button class="btn btn-sm btn-info w-100">
+                                        <i class="fas fa-box me-1"></i>Mark as Packed
+                                    </button>
+                                </form>
+                            {% elif o.status == 'manufacturer_packed' %}
+                                <form method="POST" action="{{ url_for('manufacturer_dispatch_order', req_id=o.id) }}">
+                                    <input type="text" name="dispatch_notes" class="form-control form-control-sm mb-1" placeholder="Dispatch notes (optional)">
+                                    <button class="btn btn-sm btn-primary w-100">
+                                        <i class="fas fa-shipping-fast me-1"></i>Dispatch
+                                    </button>
+                                </form>
+                            {% elif o.status == 'manufacturer_dispatched' %}
+                                <span class="badge bg-success">✓ Dispatched</span>
+                            {% elif o.status == 'delivered' %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Delivered</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted text-center py-4">No incoming orders from suppliers yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- MY MEDICINES -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-pills me-2"></i>My Medicines</h6></div>
+            <div class="card-body">
+                {% for p in products %}
+                <div class="card mb-2">
+                    <div class="card-body d-flex justify-content-between">
+                        <div>
+                            <h6>{{ p.name }} <span class="badge bg-secondary">#{{ p.id }}</span></h6>
+                            <small class="text-muted d-block">{{ p.composition }}</small>
+                            <small class="text-muted">
+                                Qty: {{ p.quantity }} {{ p.unit }} | ${{ "%.2f"|format(p.price_per_unit) }}
+                            </small>
+                            <br>
+                            <span class="badge bg-{% if p.status == 'available' %}success{% elif p.status == 'pending' %}warning{% elif p.status == 'dispatched' %}info{% elif p.status == 'out_of_stock' %}secondary{% elif p.status == 'rejected' %}danger{% else %}secondary{% endif %} mt-1">
+                                {{ p.status|replace('_', ' ')|title }}
+                            </span>
+                            {% if p.is_dispatched %}
+                                <span class="badge bg-info mt-1"><i class="fas fa-shipping-fast me-1"></i>Dispatched</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            {% if p.image_url %}
+                                <img src="{{ p.image_url }}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;">
+                            {% endif %}
+                            <a href="{{ url_for('delete_medicine', product_id=p.id) }}" class="btn btn-sm btn-outline-danger mt-2" onclick="return confirm('Delete?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">No medicines yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- CERTIFICATES -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-file-medical me-2"></i>Certificates</h6></div>
+            <div class="card-body">
+                {% for c in certificates[:8] %}
+                <div class="border-bottom pb-2 mb-2">
+                    <strong>{{ c.product_name }}</strong>
+                    <span class="badge bg-{% if c.status == 'approved' %}success{% elif c.status == 'pending' %}warning{% else %}danger{% endif %} float-end">
+                        {{ c.status|title }}
+                    </span>
+                    <small class="text-muted d-block">Batch: {{ c.batch_number }}</small>
+                </div>
+                {% else %}
+                <p class="text-muted small">No certificates yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Recent Payments</h6></div>
+            <div class="card-body">
+                {% for r in receipts %}
+                <div class="border-bottom pb-2 mb-2">
+                    <strong>${{ "%.2f"|format(r.amount) }}</strong>
+                    <small class="text-muted d-block">from {{ r.from_user.username }}</small>
+                </div>
+                {% else %}
+                <p class="text-muted small">No receipts yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

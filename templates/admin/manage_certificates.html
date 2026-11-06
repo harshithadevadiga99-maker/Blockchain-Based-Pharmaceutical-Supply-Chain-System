@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Manage Certificates{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-file-medical me-2 text-primary"></i>Medicine Certificates</h5>
+        <div>
+            <span class="badge bg-warning">Pending: {{ certificates|selectattr('status', 'equalto', 'pending')|list|length }}</span>
+            <span class="badge bg-success">Approved: {{ certificates|selectattr('status', 'equalto', 'approved')|list|length }}</span>
+            <span class="badge bg-danger">Rejected: {{ certificates|selectattr('status', 'equalto', 'rejected')|list|length }}</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Manufacturer</th>
+                        <th>Batch</th>
+                        <th>Grade</th>
+                        <th>Certificate</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cert in certificates %}
+                    <tr>
+                        <td><strong>{{ cert.product_name }}</strong></td>
+                        <td>
+                            {{ cert.manufacturer.company_name or cert.manufacturer.username }}
+                            <br><small class="text-muted">{{ cert.manufacturer.license_number }}</small>
+                        </td>
+                        <td>{{ cert.batch_number }}</td>
+                        <td><span class="badge bg-info">{{ cert.quality_grade }}</span></td>
+                        <td>
+                            {% if cert.certificate_file %}
+                                <a href="{{ url_for('admin_view_certificate', cert_id=cert.id) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                                <a href="{{ url_for('download_certificate', cert_id=cert.id) }}"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">No file</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if cert.status == 'approved' %}success{% elif cert.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                {{ cert.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if cert.status == 'pending' %}
+                                <a href="{{ url_for('approve_certificate', cert_id=cert.id) }}"
+                                   class="btn btn-sm btn-success"
+                                   onclick="return confirm('Approve this certificate?')">
+                                    <i class="fas fa-check me-1"></i>Approve
+                                </a>
+                                <button class="btn btn-sm btn-danger"
+                                        onclick="openRejectModal({{ cert.id }}, '{{ cert.product_name }}')">
+                                    <i class="fas fa-times me-1"></i>Reject
+                                </button>
+                            {% elif cert.status == 'rejected' %}
+                                <small class="text-danger">
+                                    <i class="fas fa-times-circle me-1"></i>Rejected
+                                    {% if cert.rejection_reason %}
+                                        <br>Reason: {{ cert.rejection_reason }}
+                                    {% endif %}
+                                </small>
+                            {% else %}
+                                <small class="text-success">
+                                    <i class="fas fa-check-circle me-1"></i>Approved
+                                </small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No certificates yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-times-circle text-danger me-2"></i>Reject Certificate
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="" id="rejectForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This will mark the associated medicine as rejected.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Medicine</label>
+                        <p class="fw-bold" id="rejectProductName">-</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Rejection *</label>
+                        <textarea name="reason" class="form-control" rows="4" required
+                                  placeholder="Explain why the certificate is being rejected..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Confirm Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRejectModal(certId, productName) {
+    document.getElementById('rejectForm').action =
+        "{{ url_for('reject_certificate', cert_id=0) }}".replace('0', certId);
+    document.getElementById('rejectProductName').textContent = productName;
+    document.querySelector('#rejectForm textarea[name="reason"]').value = '';
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+</script>
+{% endblock %}

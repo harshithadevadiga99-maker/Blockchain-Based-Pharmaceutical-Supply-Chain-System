@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Rate Medicine{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5><i class="fas fa-star me-2 text-warning"></i>Rate Medicine</h5></div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    {% if product and product.image_url %}
+                        <img src="{{ product.image_url }}" style="max-width:150px;max-height:150px;border-radius:10px;">
+                    {% endif %}
+                    <h5 class="mt-2">{{ order.product_name }}</h5>
+                    <p class="text-muted">Order #{{ order.id }}</p>
+                </div>
+
+                <form method="POST">
+                    <div class="mb-4 text-center">
+                        <h6>Rate this medicine</h6>
+                        <div class="star-rating">
+                            {% for i in range(5, 0, -1) %}
+                                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
+                                <label for="star{{ i }}"><i class="fas fa-star fa-2x"></i></label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Review (Optional)</label>
+                        <textarea name="review_text" class="form-control" rows="3" placeholder="Share your experience..."></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-star me-2"></i>Submit Rating
+                        </button>
+                        <a href="{{ url_for('consumer_dashboard') }}" class="btn btn-secondary mt-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.star-rating { display: flex; flex-direction: row-reverse; justify-content: center; gap: 10px; }
+.star-rating input { display: none; }
+.star-rating label { cursor: pointer; color: #ddd; }
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label { color: #ffc107; }
+</style>
+{% endblock %}

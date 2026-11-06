@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Blockchain Explorer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-cubes me-2 text-primary"></i>Medicine Supply Chain Blockchain</h2>
+    <div>
+        {% if is_valid %}
+            <span class="badge bg-success p-2"><i class="fas fa-shield-alt me-1"></i>Chain Verified</span>
+        {% else %}
+            <span class="badge bg-danger p-2"><i class="fas fa-exclamation-triangle me-1"></i>Invalid</span>
+        {% endif %}
+        <span class="badge bg-primary p-2 ms-2"><i class="fas fa-cube me-1"></i>{{ blocks|length }} Blocks</span>
+    </div>
+</div>
+
+<div class="alert {% if is_valid %}alert-success{% else %}alert-danger{% endif %}">
+    <i class="fas fa-{% if is_valid %}check-circle{% else %}times-circle{% endif %} me-2"></i>
+    <strong>Integrity Check:</strong> {{ verify_message }}
+</div>
+
+<div class="row">
+    {% for block in blocks|reverse %}
+    <div class="col-md-12 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-primary">Block #{{ block.index }}</span>
+                    <span class="badge bg-info ms-2">{{ block.event_type }}</span>
+                    {% if block.index == 0 %}<span class="badge bg-warning ms-2">GENESIS</span>{% endif %}
+                </div>
+                <small class="text-muted"><i class="far fa-clock me-1"></i>{{ block.timestamp[:19] }}</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 mb-2">
+                        <small class="text-muted">Hash:</small>
+                        <code class="d-block text-truncate" style="font-size:0.75rem;">{{ block.hash }}</code>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <small class="text-muted">Previous Hash:</small>
+                        <code class="d-block text-truncate" style="font-size:0.75rem;">{{ block.previous_hash }}</code>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <small class="text-muted">Nonce: {{ block.nonce }}</small>
+                    </div>
+                    <div class="col-md-12">
+                        <small class="text-muted">Event Data:</small>
+                        <pre class="bg-light p-2 rounded mb-0" style="font-size:0.75rem;max-height:150px;overflow:auto;">{{ block.event_data }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

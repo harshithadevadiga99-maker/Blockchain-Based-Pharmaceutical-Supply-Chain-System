@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Pharmacy Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-clinic-medical me-2 text-success"></i>Pharmacy Dashboard</h2>
+    <a href="{{ url_for('create_request') }}" class="btn gradient-btn">
+        <i class="fas fa-plus-circle me-2"></i>New Medicine Request
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-id-card me-2"></i>
+    <strong>{{ current_user.company_name or current_user.username }}</strong>
+    | License: <strong>{{ current_user.license_number }}</strong>
+    | Wallet: <strong>${{ "%.2f"|format(current_user.wallet_balance or 0) }}</strong>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3"><div class="card text-white bg-primary p-3"><h6>Total Requests</h6><h2>{{ total_requests }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-warning p-3"><h6>Pending</h6><h2>{{ pending_count }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-info p-3"><h6>Needs Payment</h6><h2>{{ pending_payment|length }}</h2></div></div>
+    <div class="col-md-3"><div class="card text-white bg-success p-3"><h6>Delivered</h6><h2>{{ delivered_count }}</h2></div></div>
+</div>
+
+{% if pending_payment %}
+<div class="alert alert-warning">
+    <h6><i class="fas fa-exclamation-triangle me-2"></i>Action Required: Payment to Suppliers</h6>
+    {% for r in pending_payment %}
+        <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+            <div>
+                <strong>{{ r.medicine_name }}</strong> - {{ r.quantity }} {{ r.unit }} 
+                | Supplier: {{ r.supplier.company_name or r.supplier.username if r.supplier else 'N/A' }}
+                | Amount: <strong>${{ "%.2f"|format(r.final_price or 0) }}</strong>
+            </div>
+            <a href="{{ url_for('pharmacy_pay_supplier', req_id=r.id) }}" class="btn btn-success btn-sm">
+                <i class="fas fa-credit-card me-1"></i>Pay Supplier
+            </a>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>My Requests</h6></div>
+            <div class="card-body">
+                {% for r in requests %}
+                <div class="card mb-2" style="border-left: 5px solid
+                    {% if r.status == 'delivered' %}#198754
+                    {% elif r.status == 'cancelled' %}#dc3545
+                    {% elif r.status in ['pharmacy_paid','supplier_ordered_manufacturer','supplier_paid_manufacturer','manufacturer_processing','manufacturer_packed','manufacturer_dispatched','shipped'] %}#0dcaf0
+                    {% elif r.status == 'supplier_accepted' %}#ffc107
+                    {% else %}#6c757d{% endif %};">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6>{{ r.medicine_name }} <span class="badge bg-secondary">#{{ r.id }}</span></h6>
+                                <small class="text-muted">
+                                    Qty: {{ r.quantity }} {{ r.unit }}
+                                    {% if r.final_price %} | Amount: ${{ "%.2f"|format(r.final_price) }}{% endif %}
+                                </small>
+                            </div>
+                            <span class="badge bg-primary align-self-start">{{ r.status|replace('_',' ')|title }}</span>
+                        </div>
+                        <div class="mt-2">
+                            {% if r.supplier %}
+                                <small class="text-muted"><i class="fas fa-truck me-1"></i>Supplier: {{ r.supplier.company_name or r.supplier.username }}</small><br>
+                            {% endif %}
+                            {% if r.tracking_number %}
+                                <small class="text-info"><i class="fas fa-shipping-fast me-1"></i>{{ r.tracking_number }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Payment status row -->
+                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                            <span class="badge bg-{% if r.pharmacy_payment_status == 'paid' %}success{% else %}warning{% endif %}">
+                                Your Payment: {{ r.pharmacy_payment_status|title }}
+                            </span>
+                            <span class="badge bg-{% if r.supplier_payment_status == 'paid' %}success{% else %}secondary{% endif %}">
+                                Supplier → Mfg: {{ r.supplier_payment_status|title }}
+                            </span>
+                        </div>
+
+                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                            {% if r.status == 'supplier_accepted' %}
+                                <a href="{{ url_for('pharmacy_pay_supplier', req_id=r.id) }}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-credit-card me-1"></i>Pay Supplier ${{ "%.2f"|format(r.final_price or 0) }}
+                                </a>
+                            {% endif %}
+                            {% if r.pharmacy_payment_id %}
+                                <a href="{{ url_for('view_receipt', receipt_number=r.pharmacy_payment_id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-receipt me-1"></i>Receipt
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">No requests yet. Click "New Medicine Request" to begin.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-users me-2"></i>User Orders</h6></div>
+            <div class="card-body">
+                {% for o in user_orders[:5] %}
+                <div class="card mb-2">
+                    <div class="card-body p-2">
+                        <strong>{{ o.medicine_name }}</strong>
+                        <small class="text-muted d-block">
+                            {{ o.quantity }} {{ o.unit }} | ${{ "%.2f"|format(o.price) }}<br>
+                            By: {{ o.user.username }}
+                        </small>
+                        <span class="badge bg-{% if o.status == 'delivered' %}success{% elif o.status == 'ready' %}info{% else %}warning{% endif %} mt-1">
+                            {{ o.status|title }}
+                        </span>
+                        {% if o.status == 'paid' %}
+                            <a href="{{ url_for('pharmacy_sell_to_user', order_id=o.id) }}" class="btn btn-sm btn-info mt-1 w-100">
+                                Mark Ready
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted small">No user orders yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Recent Receipts</h6></div>
+            <div class="card-body">
+                {% for r in receipts %}
+                <div class="border-bottom pb-2 mb-2">
+                    <small class="text-muted d-block">{{ r.receipt_number }}</small>
+                    <strong>${{ "%.2f"|format(r.amount) }}</strong>
+                    <small class="text-muted">to {{ r.to_user.username }}</small>
+                </div>
+                {% else %}
+                <p class="text-muted small">No receipts yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

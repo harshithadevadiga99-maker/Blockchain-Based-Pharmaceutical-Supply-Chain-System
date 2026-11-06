@@ -1,0 +1,579 @@
+{% extends "base.html" %}
+
+{% block title %}Consumer Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 15px;
+        border: none;
+        transition: transform 0.3s, box-shadow 0.3s;
+        overflow: hidden;
+        position: relative;
+    }
+    .stat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.18);
+    }
+    .stat-card .icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.25);
+        font-size: 1.6rem;
+    }
+    .order-card {
+        border-radius: 12px;
+        border-left: 5px solid #dee2e6;
+        transition: all 0.25s;
+        background: #fff;
+    }
+    .order-card:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        transform: translateX(4px);
+    }
+    .order-card.status-pending { border-left-color: #ffc107; }
+    .order-card.status-processing { border-left-color: #17a2b8; }
+    .order-card.status-admin_approved { border-left-color: #0d6efd; }
+    .order-card.status-supplier_selected { border-left-color: #6f42c1; }
+    .order-card.status-supplier_processing { border-left-color: #fd7e14; }
+    .order-card.status-shipping { border-left-color: #0dcaf0; }
+    .order-card.status-delivered { border-left-color: #198754; }
+    .order-card.status-cancelled { border-left-color: #dc3545; opacity: 0.85; }
+
+    .chain-step {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        padding: 4px 8px;
+        border-radius: 20px;
+        background: #f1f3f5;
+        margin-right: 4px;
+        margin-bottom: 4px;
+        display: inline-flex;
+    }
+    .chain-step.done { background: #d1e7dd; color: #0f5132; }
+    .chain-step.pending { background: #fff3cd; color: #664d03; }
+    .chain-step.cancelled { background: #f8d7da; color: #842029; }
+
+    .product-mini {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.25s;
+    }
+    .product-mini:hover { transform: scale(1.03); }
+    .product-mini img, .product-mini .placeholder-img {
+        height: 120px;
+        object-fit: cover;
+        width: 100%;
+    }
+    .placeholder-img {
+        background: linear-gradient(135deg, #e9ecef, #dee2e6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .star-display { color: #ffc107; font-size: 0.9rem; }
+    .star-display .empty { color: #ccc; }
+
+    .welcome-banner {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        border-radius: 15px;
+        padding: 22px 28px;
+        color: white;
+        margin-bottom: 22px;
+        box-shadow: 0 10px 30px rgba(17,153,142,0.25);
+    }
+    .welcome-banner h3 { margin-bottom: 6px; }
+    .welcome-banner p { margin-bottom: 0; opacity: 0.9; }
+
+    .quick-action-btn {
+        border-radius: 12px;
+        padding: 14px;
+        text-align: center;
+        transition: all 0.25s;
+        border: 2px dashed #dee2e6;
+        background: #fff;
+        width: 100%;
+        color: #495057;
+    }
+    .quick-action-btn:hover {
+        border-color: #11998e;
+        color: #11998e;
+        transform: translateY(-3px);
+        background: #e8f8f5;
+    }
+    .quick-action-btn i { font-size: 1.4rem; display: block; margin-bottom: 6px; }
+    .quick-action-btn span { font-size: 0.9rem; font-weight: 500; }
+
+    .rating-section {
+        border-radius: 15px;
+        border: 2px solid #ffc107;
+        background: #fffdf5;
+        padding: 18px;
+    }
+    .prescription-badge {
+        background: #dc3545;
+        color: white;
+        font-size: 0.68rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    .filter-tabs .nav-link {
+        border-radius: 20px;
+        padding: 6px 16px;
+        margin-right: 6px;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .filter-tabs .nav-link.active {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+        border-color: transparent;
+    }
+    .timeline-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+    .timeline-dot.done { background: #198754; }
+    .timeline-dot.current { background: #0d6efd; animation: pulse 1.5s infinite; }
+    .timeline-dot.pending { background: #ccc; }
+    .timeline-dot.cancelled { background: #dc3545; }
+    @keyframes pulse {
+        0%,100% { box-shadow: 0 0 0 0 rgba(13,110,253,0.5); }
+        50% { box-shadow: 0 0 0 8px rgba(13,110,253,0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============ WELCOME BANNER ============ -->
+<div class="welcome-banner">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h3><i class="fas fa-user-injured me-2"></i>Welcome, {{ current_user.username }}!</h3>
+            <p>
+                <i class="fas fa-wallet me-1"></i>
+                Wallet Balance: <strong>${{ "%.2f"|format(current_user.wallet_balance or 0) }}</strong>
+                <span class="ms-3">
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    {{ current_user.address if current_user.address else 'Add your address in profile' }}
+                </span>
+            </p>
+        </div>
+        <div class="mt-2 mt-md-0">
+            <a href="{{ url_for('chatbot') }}" class="btn btn-light me-2">
+                <i class="fas fa-robot me-1"></i>AI Assistant
+            </a>
+            <a href="{{ url_for('view_products') }}" class="btn btn-light">
+                <i class="fas fa-capsules me-1"></i>Browse Medicines
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ============ NOTIFICATION ALERT ============ -->
+{% if notifications > 0 %}
+<div class="alert alert-info d-flex justify-content-between align-items-center">
+    <div>
+        <i class="fas fa-bell me-2"></i>
+        You have <strong>{{ notifications }}</strong> unread notification(s).
+    </div>
+    <a href="{{ url_for('view_notifications') }}" class="btn btn-sm btn-primary">
+        View All <i class="fas fa-arrow-right ms-1"></i>
+    </a>
+</div>
+{% endif %}
+
+<!-- ============ STATS ROW ============ -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card text-white bg-primary">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">Total Orders</h6>
+                    <h2 class="mb-0">{{ total_orders }}</h2>
+                </div>
+                <div class="icon-circle">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card text-white bg-success">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">Delivered</h6>
+                    <h2 class="mb-0">{{ delivered_orders }}</h2>
+                </div>
+                <div class="icon-circle">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card text-white bg-warning">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">Pending</h6>
+                    <h2 class="mb-0">{{ pending_orders }}</h2>
+                </div>
+                <div class="icon-circle">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card text-white bg-info">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">To Rate</h6>
+                    <h2 class="mb-0">{{ deliverable_orders|length }}</h2>
+                </div>
+                <div class="icon-circle">
+                    <i class="fas fa-star"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ QUICK ACTIONS ============ -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-2">
+        <a href="{{ url_for('view_products') }}" class="quick-action-btn d-block text-decoration-none">
+            <i class="fas fa-search"></i>
+            <span>Browse Medicines</span>
+        </a>
+    </div>
+    <div class="col-md-3 col-6 mb-2">
+        <a href="{{ url_for('chatbot') }}" class="quick-action-btn d-block text-decoration-none">
+            <i class="fas fa-robot"></i>
+            <span>AI Assistant</span>
+        </a>
+    </div>
+    <div class="col-md-3 col-6 mb-2">
+        <a href="{{ url_for('blockchain_explorer') }}" class="quick-action-btn d-block text-decoration-none">
+            <i class="fas fa-cubes"></i>
+            <span>Blockchain</span>
+        </a>
+    </div>
+    <div class="col-md-3 col-6 mb-2">
+        <a href="{{ url_for('view_notifications') }}" class="quick-action-btn d-block text-decoration-none">
+            <i class="fas fa-bell"></i>
+            <span>Notifications</span>
+        </a>
+    </div>
+</div>
+
+<!-- ============ ORDERS SECTION ============ -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>My Orders</h5>
+                <div class="filter-tabs mt-2 mt-md-0">
+                    <button class="nav-link active" data-filter="all">All</button>
+                    <button class="nav-link" data-filter="pending">Pending</button>
+                    <button class="nav-link" data-filter="shipping">Shipping</button>
+                    <button class="nav-link" data-filter="delivered">Delivered</button>
+                    <button class="nav-link" data-filter="cancelled">Cancelled</button>
+                </div>
+            </div>
+            <div class="card-body" id="ordersContainer">
+                {% if orders %}
+                    {% for order in orders %}
+                        {% set review = MedicineReview.query.filter_by(order_id=order.id, consumer_id=current_user.id).first() %}
+                        <div class="order-card status-{{ order.status }} p-3 mb-3" data-status="{{ order.status }}">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center flex-wrap">
+                                        <h6 class="mb-1 me-2">{{ order.product_name }}</h6>
+                                        <span class="badge bg-secondary">#{{ order.id }}</span>
+
+                                        {% if order.medicine and order.medicine.prescription_required %}
+                                            <span class="prescription-badge ms-1">Rx</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-box me-1"></i>
+                                        Qty: {{ order.quantity }} {{ order.unit }}
+                                        <span class="mx-2">|</span>
+                                        <i class="fas fa-dollar-sign me-1"></i>
+                                        Total: ${{ "%.2f"|format(order.price) }}
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        <i class="far fa-calendar me-1"></i>
+                                        Placed: {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                    </div>
+
+                                    <!-- Status badge -->
+                                    <div class="mt-2">
+                                        <span class="badge
+                                            {% if order.status == 'delivered' %}bg-success
+                                            {% elif order.status == 'cancelled' %}bg-danger
+                                            {% elif order.status == 'shipping' %}bg-info
+                                            {% elif order.status == 'pending' %}bg-warning text-dark
+                                            {% else %}bg-primary{% endif %}">
+                                            {% if order.status == 'delivered' %}<i class="fas fa-check-circle me-1"></i>
+                                            {% elif order.status == 'cancelled' %}<i class="fas fa-times-circle me-1"></i>
+                                            {% elif order.status == 'shipping' %}<i class="fas fa-truck me-1"></i>
+                                            {% else %}<i class="fas fa-hourglass-half me-1"></i>{% endif %}
+                                            {{ order.status|replace('_', ' ')|title }}
+                                        </span>
+
+                                        <span class="badge
+                                            {% if order.payment_status == 'supplier_paid' %}bg-success
+                                            {% elif order.payment_status == 'consumer_paid' %}bg-info
+                                            {% else %}bg-secondary{% endif %} ms-1">
+                                            <i class="fas fa-wallet me-1"></i>
+                                            {{ order.payment_status|replace('_', ' ')|title }}
+                                        </span>
+
+                                        {% if order.tracking_number %}
+                                            <span class="badge bg-info ms-1">
+                                                <i class="fas fa-shipping-fast me-1"></i>{{ order.tracking_number }}
+                                            </span>
+                                        {% endif %}
+
+                                        {% if order.status == 'delivered' and review %}
+                                            <span class="badge bg-warning text-dark ms-1">
+                                                <i class="fas fa-star me-1"></i>Rated {{ review.rating }}/5
+                                            </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Chain progress -->
+                                    {% if order.status != 'cancelled' %}
+                                    <div class="mt-2">
+                                        <div class="chain-step
+                                            {% if order.status not in ['pending'] %}done{% else %}pending{% endif %}">
+                                            <i class="fas fa-industry"></i> Manufacturer
+                                        </div>
+                                        <div class="chain-step
+                                            {% if order.status in ['supplier_processing','shipping','delivered'] %}done
+                                            {% elif order.supplier_id %}pending
+                                            {% else %}pending{% endif %}">
+                                            <i class="fas fa-truck"></i> Supplier
+                                        </div>
+                                        <div class="chain-step
+                                            {% if order.status == 'delivered' %}done{% else %}pending{% endif %}">
+                                            <i class="fas fa-home"></i> Delivered
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="mt-2">
+                                        <div class="chain-step cancelled">
+                                            <i class="fas fa-times-circle"></i> Order Cancelled
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if order.status == 'cancelled' and order.notes %}
+                                        <div class="alert alert-danger mt-2 mb-0 p-2 small">
+                                            <i class="fas fa-info-circle me-1"></i>{{ order.notes }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="d-flex flex-column gap-1 ms-2">
+                                    {% if order.payment_status == 'pending' and order.status != 'cancelled' %}
+                                        <a href="{{ url_for('make_payment', order_id=order.id) }}"
+                                           class="btn btn-sm btn-success">
+                                            <i class="fas fa-credit-card me-1"></i>Pay Now
+                                        </a>
+                                    {% endif %}
+
+                                    <a href="{{ url_for('track_order', order_id=order.id) }}"
+                                       class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye me-1"></i>Track
+                                    </a>
+
+                                    <a href="{{ url_for('order_blockchain', order_id=order.id) }}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-cube me-1"></i>Blockchain
+                                    </a>
+
+                                    {% if order.status == 'delivered' and not review %}
+                                        <a href="{{ url_for('rate_product', order_id=order.id) }}"
+                                           class="btn btn-sm btn-warning">
+                                            <i class="fas fa-star me-1"></i>Rate Now
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No orders yet</h5>
+                        <p class="text-muted">Start browsing medicines to place your first order.</p>
+                        <a href="{{ url_for('view_products') }}" class="btn gradient-btn">
+                            <i class="fas fa-capsules me-2"></i>Browse Medicines
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ AVAILABLE MEDICINES (SIDEBAR) ============ -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-capsules me-2"></i>Available Medicines</h6>
+                <a href="{{ url_for('view_products') }}" class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if products %}
+                    {% for product in products[:4] %}
+                    <div class="product-mini card mb-3">
+                        {% if product.image_url %}
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="placeholder-img">
+                                <i class="fas fa-pills fa-2x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="p-2">
+                            <h6 class="mb-1 small">{{ product.name }}</h6>
+                            <div class="text-muted small mb-1">
+                                {{ product.composition[:35] }}{% if product.composition and product.composition|length > 35 %}...{% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small"><strong>${{ "%.2f"|format(product.price_per_unit) }}</strong>/{{ product.unit }}</span>
+                                <div class="star-display">
+                                    {% set full = product.rating|int %}
+                                    {% for i in range(5) %}
+                                        <i class="fas fa-star {% if i >= full %}empty{% endif %}" style="font-size:0.75rem;"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-info">{{ product.quantity }} {{ product.unit }}</span>
+                                {% if product.prescription_required %}
+                                    <span class="prescription-badge">Rx</span>
+                                {% endif %}
+                            </div>
+                            <form method="POST" action="{{ url_for('place_order') }}" class="d-flex gap-1 mt-2">
+                                <input type="hidden" name="product_id" value="{{ product.id }}">
+                                <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
+                                       class="form-control form-control-sm" style="width: 65px;">
+                                <button type="submit" class="btn btn-sm btn-success flex-grow-1">
+                                    <i class="fas fa-cart-plus me-1"></i>Order
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-3">No medicines available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Health tip -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-heartbeat me-2 text-danger"></i>Health Tip</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-0 text-muted">
+                    <i class="fas fa-quote-left me-1"></i>
+                    Always check the expiry date before consuming any medicine. Store medicines in a cool, dry place away from direct sunlight.
+                    Consult your doctor before taking any prescription medicine.
+                </p>
+                <a href="{{ url_for('chatbot') }}" class="btn btn-sm btn-outline-primary mt-2">
+                    <i class="fas fa-robot me-1"></i>Ask AI Assistant
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ RATING PROMPT ============ -->
+{% if deliverable_orders %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="rating-section">
+            <h5 class="mb-3">
+                <i class="fas fa-star text-warning me-2"></i>
+                You have {{ deliverable_orders|length }} delivered medicine(s) waiting for your rating!
+            </h5>
+            <div class="row">
+                {% for order in deliverable_orders %}
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="mb-1">{{ order.product_name }}</h6>
+                            <small class="text-muted d-block mb-2">
+                                Order #{{ order.id }} • Delivered {{ order.delivery_date.strftime('%Y-%m-%d') if order.delivery_date else '' }}
+                            </small>
+                            <div class="mb-2">
+                                {% for i in range(5) %}
+                                    <i class="far fa-star text-warning"></i>
+                                {% endfor %}
+                            </div>
+                            <a href="{{ url_for('rate_product', order_id=order.id) }}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-star me-1"></i>Rate Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Filter orders
+    document.querySelectorAll('.filter-tabs .nav-link').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tabs .nav-link').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filter = this.dataset.filter;
+            document.querySelectorAll('.order-card').forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = '';
+                } else if (filter === 'shipping') {
+                    card.style.display = ['shipping', 'supplier_processing', 'supplier_selected'].includes(card.dataset.status) ? '' : 'none';
+                } else {
+                    card.style.display = card.dataset.status === filter ? '' : 'none';
+                }
+            });
+        });
+    });
+
+    // Auto-dismiss alerts after 6s
+    setTimeout(() => {
+        document.querySelectorAll('.alert-dismissible').forEach(a => {
+            try { bootstrap.Alert.getInstance(a)?.close(); } catch(e) {}
+        });
+    }, 6000);
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4 class="mb-0"><i class="fas fa-user-plus me-2 text-success"></i>Create Account</h4>
+                <small class="text-muted">License verification required for business roles</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" id="registerForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Username *</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password *</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Role *</label>
+                            <select name="role" id="roleSelect" class="form-select" required>
+                                <option value="">-- Select Role --</option>
+                                <option value="manufacturer">Manufacturer</option>
+                                <option value="supplier">Supplier</option>
+                                <option value="pharmacy">Pharmacy</option>
+                                <option value="user">User</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row" id="licenseRow" style="display:none;">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-id-card text-primary me-1"></i>
+                                Official License Number <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="license_number" id="licenseInput" class="form-control" placeholder="e.g., LIC-MFG-001">
+                            <small class="text-muted">
+                                License must match the official registry. Fake licenses will be <strong>rejected</strong> and logged.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" name="company_name" class="form-control" id="companyInput">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" name="phone" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" name="address" class="form-control">
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <strong>License Verification:</strong> All manufacturers, suppliers, and pharmacies must use an official license number. Fake licenses are automatically rejected and logged on the blockchain.
+                    </div>
+
+                    <button type="submit" class="btn gradient-btn w-100">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </button>
+                </form>
+                <div class="text-center mt-3">
+                    <p class="text-muted mb-0">Have an account? <a href="{{ url_for('login') }}">Login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const licenseRow = document.getElementById('licenseRow');
+    const licenseInput = document.getElementById('licenseInput');
+    const roleSelect = document.getElementById('roleSelect');
+
+    roleSelect.addEventListener('change', function() {
+        if (['manufacturer', 'supplier', 'pharmacy'].includes(this.value)) {
+            licenseRow.style.display = '';
+            licenseInput.required = true;
+        } else {
+            licenseRow.style.display = 'none';
+            licenseInput.required = false;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Supplier Receipts{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-receipt me-2 text-warning"></i>Payment Receipts</h2>
+
+<div class="alert alert-info">
+    <i class="fas fa-wallet me-2"></i>
+    Wallet Balance: <strong>${{ "%.2f"|format(current_user.wallet_balance or 0) }}</strong>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="fas fa-arrow-down me-2"></i>Received (from Pharmacy)</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead><tr><th>Receipt</th><th>From</th><th>Amount</th><th>View</th></tr></thead>
+                    <tbody>
+                        {% for r in received %}
+                        <tr>
+                            <td><small>{{ r.receipt_number }}</small></td>
+                            <td>{{ r.from_user.company_name or r.from_user.username }}</td>
+                            <td class="text-success fw-bold">${{ "%.2f"|format(r.amount) }}</td>
+                            <td>
+                                <a href="{{ url_for('view_receipt', receipt_number=r.receipt_number) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-muted text-center">None yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="fas fa-arrow-up me-2"></i>Sent (to Manufacturer)</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead><tr><th>Receipt</th><th>To</th><th>Amount</th><th>View</th></tr></thead>
+                    <tbody>
+                        {% for r in sent %}
+                        <tr>
+                            <td><small>{{ r.receipt_number }}</small></td>
+                            <td>{{ r.to_user.company_name or r.to_user.username }}</td>
+                            <td class="text-danger fw-bold">${{ "%.2f"|format(r.amount) }}</td>
+                            <td>
+                                <a href="{{ url_for('view_receipt', receipt_number=r.receipt_number) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-muted text-center">None yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Process Order{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-play-circle me-2"></i>Process Order #{{ req.id }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Medicine:</strong> {{ req.medicine_name }}<br>
+                    <strong>Quantity:</strong> {{ req.quantity }} {{ req.unit }}<br>
+                    <strong>Pharmacy:</strong> {{ req.pharmacy.company_name or req.pharmacy.username }}<br>
+                    <strong>Supplier:</strong> {{ req.supplier.company_name or req.supplier.username if req.supplier else 'N/A' }}<br>
+                    <strong>Price:</strong> ${{ "%.2f"|format(req.final_price or 0) }}
+                </div>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Packing Notes</label>
+                        <textarea name="packing_notes" class="form-control" rows="3" placeholder="Packing details, quality checks, special handling..."></textarea>
+                    </div>
+
+                    <div class="alert alert-warning small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Next Steps:</strong>
+                        <ol class="mb-0 mt-1">
+                            <li>Click Process → status becomes "Processing"</li>
+                            <li>Click "Mark as Packed" → status becomes "Packed"</li>
+                            <li>Click "Dispatch" → status becomes "Dispatched"</li>
+                            <li>Supplier ships to pharmacy</li>
+                        </ol>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn gradient-btn">
+                            <i class="fas fa-play me-2"></i>Start Processing
+                        </button>
+                        <a href="{{ url_for('manufacturer_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

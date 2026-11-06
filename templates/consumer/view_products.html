@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Browse Medicines{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-capsules me-2 text-success"></i>Available Medicines</h2>
+
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-3 mb-4">
+        <div class="card h-100">
+            {% if product.image_url %}
+                <img src="{{ product.image_url }}" class="card-img-top" style="height:200px;object-fit:cover;">
+            {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;">
+                    <i class="fas fa-pills fa-3x text-muted"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <h5>{{ product.name }}</h5>
+                <small class="text-muted d-block mb-1">{{ product.composition }}</small>
+                <div class="mb-1">
+                    <span class="badge bg-info">{{ product.category }}</span>
+                    {% if product.prescription_required %}
+                        <span class="badge bg-danger">Rx Required</span>
+                    {% endif %}
+                </div>
+                <div class="mb-2">
+                    {% set full = product.rating|int %}
+                    {% for i in range(5) %}
+                        <i class="fas fa-star {% if i < full %}text-warning{% else %}text-muted{% endif %}" style="font-size:0.8rem;"></i>
+                    {% endfor %}
+                    <small class="text-muted">{{ "%.1f"|format(product.rating) }} ({{ product.total_ratings }})</small>
+                </div>
+                <div class="row text-center mb-2">
+                    <div class="col-6">
+                        <small class="text-muted">Available</small>
+                        <h6>{{ product.quantity }} {{ product.unit }}</h6>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Price</small>
+                        <h6>${{ "%.2f"|format(product.price_per_unit) }}</h6>
+                    </div>
+                </div>
+                <small class="text-muted d-block">
+                    <i class="fas fa-industry me-1"></i>{{ User.query.get(product.manufacturer_id).username }}
+                </small>
+                <small class="text-muted d-block">
+                    <i class="fas fa-calendar me-1"></i>Exp: {{ product.expiry_date.strftime('%Y-%m-%d') if product.expiry_date else 'N/A' }}
+                </small>
+            </div>
+            <div class="card-footer">
+                <form method="POST" action="{{ url_for('place_order') }}" class="d-flex gap-1">
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}" class="form-control form-control-sm">
+                    <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-cart-plus"></i></button>
+                </form>
+                {% if product.total_ratings > 0 %}
+                    <a href="{{ url_for('view_product_reviews', product_id=product.id) }}" class="btn btn-sm btn-outline-info mt-2 w-100">
+                        <i class="fas fa-comment me-1"></i>Reviews ({{ product.total_ratings }})
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-info-circle fa-3x d-block mb-3"></i>
+            <h5>No medicines available.</h5>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

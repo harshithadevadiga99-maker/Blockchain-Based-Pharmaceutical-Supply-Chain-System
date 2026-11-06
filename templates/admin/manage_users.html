@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-users me-2 text-primary"></i>Manage Users</h2>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h4>{{ users|selectattr('role', 'equalto', 'manufacturer')|list|length }}</h4>
+            <small>Manufacturers</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h4>{{ users|selectattr('role', 'equalto', 'supplier')|list|length }}</h4>
+            <small>Suppliers</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h4>{{ users|selectattr('role', 'equalto', 'pharmacy')|list|length }}</h4>
+            <small>Pharmacies</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h4>{{ users|selectattr('role', 'equalto', 'user')|list|length }}</h4>
+            <small>Users</small>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h6 class="mb-0">All Users</h6></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Company</th>
+                        <th>License</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>#{{ u.id }}</td>
+                        <td>
+                            <strong>{{ u.username }}</strong>
+                            <br><small class="text-muted">{{ u.email }}</small>
+                        </td>
+                        <td>{{ u.company_name or '-' }}</td>
+                        <td><code>{{ u.license_number or '-' }}</code></td>
+                        <td>
+                            <span class="badge bg-{% if u.role == 'manufacturer' %}primary{% elif u.role == 'supplier' %}warning{% elif u.role == 'pharmacy' %}success{% else %}info{% endif %}">
+                                {{ u.role|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if u.is_approved %}success{% else %}danger{% endif %}">
+                                {% if u.is_approved %}Active{% else %}Suspended{% endif %}
+                            </span>
+                        </td>
+                        <td><small>{{ u.created_at.strftime('%Y-%m-%d') }}</small></td>
+                        <td>
+                            <a href="{{ url_for('toggle_user', user_id=u.id) }}" class="btn btn-sm btn-{% if u.is_approved %}danger{% else %}success{% endif %}" onclick="return confirm('Are you sure?')">
+                                {% if u.is_approved %}<i class="fas fa-ban"></i> Suspend{% else %}<i class="fas fa-check"></i> Activate{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">No users found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

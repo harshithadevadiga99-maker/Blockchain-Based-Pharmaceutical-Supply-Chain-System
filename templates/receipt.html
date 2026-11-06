@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Receipt {{ receipt.receipt_number }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card" id="receiptCard">
+            <div class="card-header text-center" style="background: linear-gradient(135deg, #11998e, #38ef7d); color: white;">
+                <h3 class="mb-1"><i class="fas fa-receipt me-2"></i>Payment Receipt</h3>
+                <small>MediChain Supply Chain</small>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="display-6 text-success">${{ "%.2f"|format(receipt.amount) }}</div>
+                    <small class="text-muted">Amount Paid</small>
+                </div>
+
+                <div class="text-center mb-4">
+                    <div class="badge bg-success p-2 px-4">
+                        <i class="fas fa-check-circle me-1"></i>Payment Completed
+                    </div>
+                </div>
+
+                <table class="table table-borderless">
+                    <tr>
+                        <td width="40%"><strong>Receipt No:</strong></td>
+                        <td><code>{{ receipt.receipt_number }}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Date:</strong></td>
+                        <td>{{ receipt.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>From:</strong></td>
+                        <td>
+                            <strong>{{ receipt.from_user.company_name or receipt.from_user.username }}</strong>
+                            <br><small class="text-muted">{{ receipt.from_user.role|title }}</small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>To:</strong></td>
+                        <td>
+                            <strong>{{ receipt.to_user.company_name or receipt.to_user.username }}</strong>
+                            <br><small class="text-muted">{{ receipt.to_user.role|title }}</small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Purpose:</strong></td>
+                        <td>{{ receipt.purpose|replace('_', ' ')|title }}</td>
+                    </tr>
+                    {% if receipt.notes %}
+                    <tr>
+                        <td><strong>Notes:</strong></td>
+                        <td>{{ receipt.notes }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+
+                <hr>
+                <div class="text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        This transaction is secured by blockchain verification
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <button onclick="window.print()" class="btn gradient-btn">
+                    <i class="fas fa-print me-2"></i>Print Receipt
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

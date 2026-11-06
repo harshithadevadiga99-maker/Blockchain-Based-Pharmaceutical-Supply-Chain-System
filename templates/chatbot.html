@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}AI Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-container { max-width: 900px; margin: 0 auto; height: 75vh; display: flex; flex-direction: column; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 15px; margin-bottom: 15px; }
+.message { margin-bottom: 15px; display: flex; gap: 10px; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from {opacity: 0; transform: translateY(10px);} to {opacity: 1;} }
+.message.user { flex-direction: row-reverse; }
+.message .bubble { max-width: 75%; padding: 12px 18px; border-radius: 18px; word-wrap: break-word; }
+.message.user .bubble { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border-bottom-right-radius: 4px; }
+.message.bot .bubble { background: white; color: #333; border: 1px solid #e0e0e0; border-bottom-left-radius: 4px; }
+.message .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+.message.user .avatar { background: #11998e; }
+.message.bot .avatar { background: #2a5298; }
+.typing { display: inline-block; width: 8px; height: 8px; background: #999; border-radius: 50%; animation: bounce 1.4s infinite; margin: 0 2px; }
+.typing:nth-child(2) { animation-delay: 0.2s; }
+.typing:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0);} 30% { transform: translateY(-8px);} }
+.language-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+.language-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #11998e; background: white; color: #11998e; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.language-btn:hover { background: #e8f8f5; }
+.language-btn.active { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border-color: transparent; }
+.speak-btn { background: transparent; border: none; color: #11998e; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; }
+.speak-btn:hover { background: #e8f8f5; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-robot me-2 text-primary"></i>MedAssist AI Assistant</h2>
+        <span class="badge bg-success">Online</span>
+    </div>
+
+    <div class="language-selector">
+        {% for code, lang in languages.items() %}
+            <button class="language-btn {% if code == 'en' %}active{% endif %}" data-lang="{{ code }}">
+                {{ lang.flag }} {{ lang.name }}
+            </button>
+        {% endfor %}
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+            <div class="avatar"><i class="fas fa-robot"></i></div>
+            <div class="bubble">
+                <div>Hello <strong>{{ current_user.username }}</strong>! 👋</div>
+                <div>I'm <strong>MedAssist</strong>, your AI health assistant. Ask me about:</div>
+                <ul class="mb-1 mt-1">
+                    <li>Medicine information</li>
+                    <li>Your orders & tracking</li>
+                    <li>Health tips & precautions</li>
+                </ul>
+                <small class="text-muted"><i class="fas fa-exclamation-triangle me-1"></i>Always consult a doctor for medical advice.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="input-group">
+                <textarea id="messageInput" class="form-control" rows="1" placeholder="Ask about medicines, orders, or health..." style="resize:none;"></textarea>
+                <button class="btn gradient-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <div class="mt-2 d-flex justify-content-between">
+                <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Not medical advice.</small>
+                <button class="btn btn-sm btn-outline-secondary" id="clearBtn"><i class="fas fa-trash me-1"></i>Clear</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentLang = 'en';
+
+document.querySelectorAll('.language-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLang = btn.dataset.lang;
+    });
+});
+
+function addMessage(text, sender, audioUrl = null) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
+    const icon = sender === 'user' ? 'fa-user' : 'fa-robot';
+    let audioHtml = '';
+    if (audioUrl && sender === 'bot') {
+        audioHtml = `<button class="speak-btn mt-1" data-audio="${audioUrl}"><i class="fas fa-volume-up me-1"></i>Play</button>`;
+    }
+    div.innerHTML = `<div class="avatar"><i class="fas ${icon}"></i></div><div class="bubble">${text}${audioHtml}</div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    div.querySelectorAll('.speak-btn').forEach(btn => {
+        btn.addEventListener('click', () => new Audio(btn.dataset.audio).play());
+    });
+}
+
+function showTyping() {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    div.id = 'typingIndicator';
+    div.innerHTML = `<div class="avatar"><i class="fas fa-robot"></i></div><div class="bubble"><span class="typing"></span><span class="typing"></span><span class="typing"></span></div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function hideTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+}
+
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (!message) return;
+    addMessage(message, 'user');
+    input.value = '';
+    showTyping();
+
+    try {
+        const res = await fetch('/api/chatbot', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message, language: currentLang})
+        });
+        const data = await res.json();
+        hideTyping();
+        if (data.error) {
+            addMessage('Error: ' + data.error, 'bot');
+        } else {
+            const safeReply = data.reply.replace(/</g, '&lt;').replace(/\n/g, '<br>');
+            addMessage(safeReply, 'bot', data.audio_url);
+            if (data.audio_url) {
+                new Audio(data.audio_url).play().catch(e => console.log('Autoplay blocked:', e));
+            }
+        }
+    } catch (e) {
+        hideTyping();
+        addMessage('Connection error. Please try again.', 'bot');
+    }
+}
+
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('messageInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+    document.getElementById('chatMessages').innerHTML = '';
+});
+</script>
+{% endblock %}

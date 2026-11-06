@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-search me-2 text-primary"></i>Search Results</h2>
+
+<!-- SEARCH BAR -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('user_search') }}" class="row g-2">
+            <div class="col-md-5">
+                <input type="text" name="q" class="form-control" placeholder="Medicine name..." value="{{ query }}" required>
+            </div>
+            <div class="col-md-4">
+                <select name="pharmacy" class="form-select">
+                    <option value="">All Pharmacies</option>
+                    {% for p in pharmacies %}
+                        <option value="{{ p.id }}" {% if pharmacy_id == p.id|string %}selected{% endif %}>
+                            {{ p.company_name or p.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn gradient-btn w-100">
+                    <i class="fas fa-search me-1"></i>Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if not results %}
+    <div class="alert alert-info text-center py-5">
+        <i class="fas fa-search fa-3x mb-3 d-block text-muted"></i>
+        <h5>No results found for "{{ query }}"</h5>
+        <p>Try a different medicine name.</p>
+    </div>
+{% endif %}
+
+{% for r in results %}
+<div class="card mb-4">
+    <!-- MEDICINE DETAILS -->
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-pills me-2"></i>{{ r.medicine.name }}</h5>
+            {% if r.blockchain_verified %}
+                <span class="badge bg-success"><i class="fas fa-shield-alt me-1"></i>Blockchain Verified</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Left: Medicine Info -->
+            <div class="col-md-5">
+                {% if r.medicine.image_url %}
+                    <img src="{{ r.medicine.image_url }}" class="img-fluid rounded mb-3" style="max-height:220px;">
+                {% endif %}
+                <table class="table table-sm">
+                    <tr><th>Composition</th><td>{{ r.medicine.composition or 'N/A' }}</td></tr>
+                    <tr><th>Category</th><td><span class="badge bg-info">{{ r.medicine.category }}</span></td></tr>
+                    <tr><th>Batch</th><td>{{ r.medicine.batch_number or 'N/A' }}</td></tr>
+                    <tr><th>Manufacturer</th><td>
+                        {{ r.medicine.manufacturer.company_name or r.medicine.manufacturer.username }}
+                        <br><small class="text-muted">{{ r.medicine.manufacturer.license_number }}</small>
+                    </td></tr>
+                    <tr><th>Mfg Date</th><td>{{ r.medicine.mfg_date.strftime('%Y-%m-%d') if r.medicine.mfg_date else 'N/A' }}</td></tr>
+                    <tr><th>Expiry Date</th><td>
+                        <span class="badge bg-warning text-dark">
+                            {{ r.medicine.expiry_date.strftime('%Y-%m-%d') if r.medicine.expiry_date else 'N/A' }}
+                        </span>
+                    </td></tr>
+                    {% if r.medicine.prescription_required %}
+                        <tr><th>Prescription</th><td><span class="badge bg-danger"><i class="fas fa-prescription me-1"></i>Required</span></td></tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <!-- Right: Medical Info -->
+            <div class="col-md-7">
+                <div class="card mb-2">
+                    <div class="card-header bg-success text-white"><h6 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Uses</h6></div>
+                    <div class="card-body py-2">
+                        <p class="mb-0 small">{{ r.medicine.uses or 'Information not available' }}</p>
+                    </div>
+                </div>
+                <div class="card mb-2">
+                    <div class="card-header bg-warning text-dark"><h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Side Effects</h6></div>
+                    <div class="card-body py-2">
+                        <p class="mb-0 small">{{ r.medicine.side_effects or 'Information not available' }}</p>
+                    </div>
+                </div>
+                <div class="card mb-2">
+                    <div class="card-header bg-info text-white"><h6 class="mb-0"><i class="fas fa-prescription-bottle me-2"></i>Dosage</h6></div>
+                    <div class="card-body py-2">
+                        <p class="mb-0 small">{{ r.medicine.dosage or 'Consult your doctor' }}</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header bg-secondary text-white"><h6 class="mb-0"><i class="fas fa-box me-2"></i>Storage</h6></div>
+                    <div class="card-body py-2">
+                        <p class="mb-0 small">{{ r.medicine.storage or 'Store in cool dry place' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUPPLY CHAIN TRACKING -->
+        <hr>
+        <h5 class="mb-3"><i class="fas fa-link me-2 text-primary"></i>Supply Chain Tracking</h5>
+
+        {% if r.requests %}
+            {% for req in r.requests %}
+            <div class="card mb-3" style="border-left: 4px solid #0d6efd;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong>Request #{{ req.id }}</strong>
+                            <small class="text-muted">
+                                | Pharmacy: {{ req.pharmacy.company_name or req.pharmacy.username }}
+                                {% if req.supplier %} | Supplier: {{ req.supplier.company_name or req.supplier.username }}{% endif %}
+                            </small>
+                        </div>
+                        <span class="badge bg-primary">{{ req.status|replace('_', ' ')|title }}</span>
+                    </div>
+
+                    <!-- Chain Steps -->
+                    <div class="d-flex align-items-center gap-2 mt-3 flex-wrap">
+                        {% set steps = [
+                            ('manufacturer_confirmed', 'Manufacturer Confirmed'),
+                            ('supplier_paid_manufacturer', 'Supplier Paid Mfg'),
+                            ('manufacturer_processing', 'Mfg Processing'),
+                            ('manufacturer_packed', 'Packed'),
+                            ('manufacturer_dispatched', 'Dispatched'),
+                            ('shipped', 'Shipped'),
+                            ('delivered', 'Delivered')
+                        ] %}
+                        {% set status_order = ['pending_supplier', 'supplier_checking_manufacturer', 'manufacturer_confirmed', 'supplier_approved', 'pharmacy_paid', 'supplier_paid_manufacturer', 'manufacturer_processing', 'manufacturer_packed', 'manufacturer_dispatched', 'shipped', 'delivered'] %}
+                        {% set current_idx = status_order.index(req.status) if req.status in status_order else -1 %}
+
+                        {% for step_key, step_label in steps %}
+                            {% set step_idx = status_order.index(step_key) if step_key in status_order else -1 %}
+                            <div class="text-center small">
+                                <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
+                                     style="width:32px;height:32px;background:{% if current_idx >= step_idx %}#198754{% else %}#dee2e6{% endif %};color:white;">
+                                    {% if current_idx >= step_idx %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-circle" style="font-size:0.5rem;"></i>{% endif %}
+                                </div>
+                                <div class="text-muted" style="font-size:0.7rem;">{{ step_label }}</div>
+                            </div>
+                            {% if not loop.last %}<i class="fas fa-arrow-right text-muted"></i>{% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if req.tracking_number %}
+                        <div class="alert alert-info mt-3 mb-0 py-2 small">
+                            <i class="fas fa-shipping-fast me-1"></i>Tracking: <strong>{{ req.tracking_number }}</strong>
+                            {% if req.delivery_date %} | Delivered: {{ req.delivery_date.strftime('%Y-%m-%d') }}{% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">No requests have been made for this medicine yet.</p>
+        {% endif %}
+
+        <!-- BLOCKCHAIN EVENTS -->
+        {% if r.events %}
+            <h6 class="mt-3 mb-2"><i class="fas fa-cubes me-2 text-warning"></i>Blockchain Events</h6>
+            <div style="max-height:200px;overflow-y:auto;">
+                {% for ev in r.events %}
+                    <div class="border-start border-3 border-warning ps-2 mb-2 small">
+                        <strong>{{ ev.event_type }}</strong>
+                        <span class="text-muted float-end">{{ ev.timestamp[:19] }}</span>
+                        <br>
+                        <code style="font-size:0.7rem;">Hash: {{ ev.hash[:32] }}...</code>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<div class="mt-3">
+    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+{% endblock %}

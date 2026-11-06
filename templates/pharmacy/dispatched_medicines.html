@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Dispatched Medicines{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-shipping-fast me-2 text-info"></i>Medicines Dispatched by Manufacturers</h2>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    These medicines have been dispatched by manufacturers and are available to order. Quantities are not shown — supplier will confirm stock.
+</div>
+
+<div class="row">
+    {% for p in medicines %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            {% if p.image_url %}
+                <img src="{{ p.image_url }}" class="card-img-top" style="height:180px;object-fit:cover;">
+            {% else %}
+                <div class="card-img-top d-flex align-items-center justify-content-center" style="height:180px;background:linear-gradient(135deg,#e9ecef,#dee2e6);">
+                    <i class="fas fa-pills fa-4x text-muted"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <h6>{{ p.name }}</h6>
+                <small class="text-muted d-block">{{ p.composition }}</small>
+                <div class="mt-2">
+                    <span class="badge bg-info">{{ p.category }}</span>
+                    <span class="badge bg-success"><i class="fas fa-shipping-fast me-1"></i>Dispatched</span>
+                    {% if p.prescription_required %}<span class="badge bg-danger">Rx</span>{% endif %}
+                </div>
+                {% if p.uses %}
+                    <small class="text-muted d-block mt-2">
+                        <strong>Uses:</strong> {{ p.uses[:80] }}{% if p.uses|length > 80 %}...{% endif %}
+                    </small>
+                {% endif %}
+                <small class="text-muted d-block">
+                    <i class="fas fa-industry me-1"></i>{{ p.manufacturer.company_name or p.manufacturer.username }}
+                </small>
+                <small class="text-muted d-block">
+                    <i class="fas fa-calendar me-1"></i>Exp: {{ p.expiry_date.strftime('%Y-%m-%d') if p.expiry_date else 'N/A' }}
+                </small>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('create_request') }}" class="btn btn-sm btn-success w-100">
+                    <i class="fas fa-plus-circle me-1"></i>Request This Medicine
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-warning text-center py-5">
+            <i class="fas fa-info-circle fa-3x mb-3 d-block"></i>
+            <h5>No dispatched medicines yet</h5>
+            <p>Wait for manufacturers to process and dispatch medicines.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

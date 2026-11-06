@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Home - MediChain{% endblock %}
+
+{% block content %}
+<div class="row align-items-center py-4">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold" style="background: linear-gradient(135deg, #11998e, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            <i class="fas fa-pills me-2"></i>MediChain
+        </h1>
+        <p class="lead mt-3">
+            A blockchain-secured medicine supply chain connecting
+            <strong>Manufacturers</strong>, <strong>Suppliers</strong>,
+            <strong>Pharmacies</strong>, and <strong>Users</strong>.
+        </p>
+        <div class="row mt-4">
+            <div class="col-md-4 text-center mb-3">
+                <div class="card p-3">
+                    <i class="fas fa-shield-virus fa-3x text-success mb-2"></i>
+                    <h6>Quality Verified</h6>
+                    <small class="text-muted">Certificate-based approval</small>
+                </div>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+                <div class="card p-3">
+                    <i class="fas fa-cubes fa-3x text-primary mb-2"></i>
+                    <h6>Blockchain Secured</h6>
+                    <small class="text-muted">Tamper-proof audit trail</small>
+                </div>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+                <div class="card p-3">
+                    <i class="fas fa-robot fa-3x text-warning mb-2"></i>
+                    <h6>AI Assistant</h6>
+                    <small class="text-muted">Multi-language support</small>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="btn gradient-btn btn-lg">
+                    <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn gradient-btn btn-lg me-2">
+                    <i class="fas fa-user-plus me-2"></i>Get Started
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card p-4">
+            <h4><i class="fas fa-network-wired me-2 text-primary"></i>Supply Chain Flow</h4>
+            <div class="d-flex align-items-center justify-content-between mt-3 p-3 rounded" style="background: #f8f9fa;">
+                <div class="text-center">
+                    <i class="fas fa-industry fa-2x text-primary"></i>
+                    <div class="small mt-1">Manufacturer</div>
+                </div>
+                <i class="fas fa-arrow-right text-muted"></i>
+                <div class="text-center">
+                    <i class="fas fa-truck fa-2x text-warning"></i>
+                    <div class="small mt-1">Supplier</div>
+                </div>
+                <i class="fas fa-arrow-right text-muted"></i>
+                <div class="text-center">
+                    <i class="fas fa-clinic-medical fa-2x text-success"></i>
+                    <div class="small mt-1">Pharmacy</div>
+                </div>
+                <i class="fas fa-arrow-right text-muted"></i>
+                <div class="text-center">
+                    <i class="fas fa-user fa-2x text-danger"></i>
+                    <div class="small mt-1">User</div>
+                </div>
+            </div>
+            <ul class="list-unstyled mt-3">
+                <li><i class="fas fa-check-circle text-success me-2"></i>Manufacturer adds medicines with quality certificates</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i>Admin reviews and approves certificates</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i>Pharmacy requests medicines from suppliers</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i>Dummy payments with digital receipts</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i>Every event logged on blockchain</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i>AI chatbot in 6 Indian languages</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
